@@ -2173,8 +2173,9 @@
                 <div class="w-28 h-1.5 rounded-full bg-tk-sand mt-1 overflow-hidden"><div class="h-full bg-tk-gold rounded-full transition-all" style="width:${pct}%"></div></div>
               </div>
             </div>
+            <div id="dayWeather">${weatherHtml(d)}</div>
             <div class="p-3 rounded-xl bg-tk-sand/70 text-xs text-tk-ink flex items-start gap-2 leading-relaxed">
-              <span>🧣</span><span>${esc(d.weatherTip)}</span>
+              <span>📝</span><span>${esc(d.weatherTip)}</span>
             </div>
             <div class="flex flex-wrap items-center gap-2">
               <button onclick="toggleRain(${d.day})" aria-pressed="${!!rainDays[d.day]}" class="chip-filter px-3 py-1.5 rounded-full text-xs font-bold">${rainDays[d.day] ? '☔ 雨天模式：開（點一下關閉）' : '🌂 下雨了？切換雨天模式'}</button>
@@ -2366,6 +2367,7 @@
               ${nexts[1] ? `<p class="text-xs text-white/70 mt-1">接著：${nexts.slice(1, 3).map(x => `${esc(x.e.timeLabel || x.e.time)} ${esc(x.e.title)}`).join('　→　')}</p>` : ''}
             </div>` : '<p class="font-serif text-lg font-bold">今天的行程都走完了，好好休息 🌙</p>'}
           <div class="flex flex-wrap gap-2 text-[11px]">
+            ${wxFor(d) ? `<span class="px-2 py-1 rounded-full bg-white/10">${wxInfo(wxFor(d).code)[0]} ${Math.round(wxFor(d).hi)}° / ${Math.round(wxFor(d).lo)}°・降雨 ${wxFor(d).pop}%</span>` : ''}
             <span class="px-2 py-1 rounded-full bg-white/10">🌅 日出約 ${sun[0]}</span>
             <span class="px-2 py-1 rounded-full bg-white/10">🌇 日落約 ${sun[1]}</span>
             ${light ? `<span class="px-2 py-1 rounded-full bg-white/10">✨ 今晚 ${esc(light.time)} ${esc(light.title)}</span>` : ''}
@@ -3298,6 +3300,88 @@
     }
 
     /* =========================================================
+       5x. 當日天氣與穿衣提示（Open-Meteo 預報；還沒有預報的日期用歷年同期平均）
+       ========================================================= */
+    const WX_KEY = 'tk2026_wx';
+    const WX_URL = 'https://api.open-meteo.com/v1/forecast?latitude=35.73&longitude=139.77&daily=weather_code,temperature_2m_max,temperature_2m_min,precipitation_probability_max,wind_speed_10m_max&timezone=Asia%2FTokyo&forecast_days=16';
+    const WX_NORMAL = { hi: 13, lo: 5 };   // 東京 12 月上旬的大約平均
+    let wx = store.get(WX_KEY, null);
+    function wxInfo(code) {
+      if (code === 0) return ['☀️', '晴'];
+      if (code === 1) return ['🌤️', '大致晴朗'];
+      if (code === 2) return ['⛅', '晴時多雲'];
+      if (code === 3) return ['☁️', '陰'];
+      if (code === 45 || code === 48) return ['🌫️', '有霧'];
+      if (code >= 51 && code <= 57) return ['🌦️', '毛毛雨'];
+      if (code >= 61 && code <= 67) return ['🌧️', '雨'];
+      if (code >= 71 && code <= 77) return ['🌨️', '雪'];
+      if (code >= 80 && code <= 82) return ['🌦️', '陣雨'];
+      if (code === 85 || code === 86) return ['🌨️', '陣雪'];
+      if (code >= 95) return ['⛈️', '雷雨'];
+      return ['🌡️', '天氣'];
+    }
+    const wxFor = d => (wx && wx.days && wx.days[d.iso]) || null;
+    function wearAdvice(hi, lo, pop, wind, night) {
+      const out = [];
+      if (hi <= 9 || lo <= 2) out.push('羽絨外套或厚大衣，裡面穿發熱衣加毛衣；圍巾、手套、毛帽都帶上');
+      else if (hi <= 13) out.push('厚外套或輕羽絨，裡面穿毛衣或刷毛上衣，洋蔥式穿法方便進室內時脫');
+      else if (hi <= 17) out.push('中等厚度的外套配薄毛衣或長袖，白天走路會熱可以脫一件');
+      else out.push('薄外套配長袖就夠，包包裡放一件針織衫備用');
+      if (lo <= 8 && night) out.push('晚上看燈會站很久，體感比氣溫低，加圍巾、手套和暖暖包');
+      else if (hi - lo >= 9) out.push('早晚溫差大，早出晚歸要多帶一層');
+      if (pop >= 60) out.push('降雨機率高，帶傘並穿防水的鞋');
+      else if (pop >= 30) out.push('可能下雨，包包放一把摺疊傘');
+      if (wind >= 30) out.push('風大，外層選防風材質，帽子要戴牢');
+      return out;
+    }
+    function weatherHtml(d) {
+      const f = wxFor(d);
+      const night = d.events.some(e => e.type === '✨ 看燈');
+      if (f) {
+        const [icon, label] = wxInfo(f.code);
+        const hi = Math.round(f.hi), lo = Math.round(f.lo);
+        const upd = new Date(wx.t);
+        return `
+          <div class="rounded-xl border border-sky-200 bg-sky-50 p-3 space-y-2">
+            <div class="flex flex-wrap items-center gap-x-3 gap-y-1">
+              <span class="text-2xl leading-none">${icon}</span>
+              <span class="text-sm font-black text-sky-800">${label}　${hi}° / ${lo}°</span>
+              <span class="text-[11px] font-bold text-sky-800">☔ 降雨 ${f.pop}%</span>
+              <span class="text-[11px] font-bold text-sky-800">💨 風 ${Math.round(f.wind)} km/h</span>
+            </div>
+            <ul class="text-xs text-tk-ink leading-relaxed space-y-0.5">${wearAdvice(f.hi, f.lo, f.pop, f.wind, night).map(t => `<li>👕 ${esc(t)}</li>`).join('')}</ul>
+            <p class="text-[10px] text-tk-muted">東京的預報（Open-Meteo），${upd.getMonth() + 1}/${upd.getDate()} ${pad(upd.getHours())}:${pad(upd.getMinutes())} 更新；越接近當天越準。</p>
+          </div>`;
+      }
+      return `
+        <div class="rounded-xl border border-tk-line bg-tk-bg p-3 space-y-2">
+          <div class="flex flex-wrap items-center gap-x-3 gap-y-1">
+            <span class="text-2xl leading-none">🌡️</span>
+            <span class="text-sm font-black text-tk-night">歷年同期平均　約 ${WX_NORMAL.hi}° / ${WX_NORMAL.lo}°</span>
+          </div>
+          <ul class="text-xs text-tk-ink leading-relaxed space-y-0.5">${wearAdvice(WX_NORMAL.hi, WX_NORMAL.lo, 0, 0, night).map(t => `<li>👕 ${esc(t)}</li>`).join('')}</ul>
+          <p class="text-[10px] text-tk-muted">這一天還沒有預報。當天前約 16 天起，這裡會自動換成實際預報和當天的穿衣建議。</p>
+        </div>`;
+    }
+    async function loadWeather() {
+      if (wx && Date.now() - wx.t < 3 * 3600e3) return;
+      try {
+        const j = await (await fetch(WX_URL)).json();
+        const days = {};
+        j.daily.time.forEach((iso, i) => {
+          const hi = j.daily.temperature_2m_max[i], lo = j.daily.temperature_2m_min[i];
+          if (typeof hi !== 'number' || typeof lo !== 'number') return;
+          days[iso] = { code: Number(j.daily.weather_code[i]) || 0, hi, lo, pop: Number(j.daily.precipitation_probability_max[i]) || 0, wind: Number(j.daily.wind_speed_10m_max[i]) || 0 };
+        });
+        wx = { t: Date.now(), days };
+        store.put(WX_KEY, wx);
+        const el = document.getElementById('dayWeather'), d = itinerary.find(x => x.day === currentDay);
+        if (el && d) el.innerHTML = weatherHtml(d);
+        renderToday();
+      } catch (e) { /* 沒網路或被擋：維持歷年平均 */ }
+    }
+
+    /* =========================================================
        5b. 美食庫 & 今日順路吃喝
        ========================================================= */
     const foodType = f => f.kind === 'cafe' ? '☕ 咖啡' : '🍱 美食';
@@ -3918,6 +4002,7 @@
     renderSaveCard();
     cloudInit();
     shareInit();
+    loadWeather();
     heroShow();
     fxInit();
     setInterval(tickCountdown, 1000);
