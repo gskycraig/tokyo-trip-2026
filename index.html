@@ -224,6 +224,7 @@
       <div id="saveCard" class="bg-white rounded-2xl border border-tk-line shadow-sm p-4 space-y-3">
         <h3 class="font-serif font-bold text-lg text-tk-night">💾 資料保存</h3>
         <div id="saveStatus"></div>
+        <div id="shareStatus"></div>
         <div class="flex flex-wrap gap-2">
           <button onclick="exportBackup()" class="chip-filter px-3 py-1.5 rounded-full text-xs font-bold">📋 複製備份代碼</button>
           <button onclick="toggleBackupBox()" class="chip-filter px-3 py-1.5 rounded-full text-xs font-bold">📥 貼上代碼還原</button>
@@ -2907,13 +2908,15 @@
       if (!keys.includes(key)) return;
       store.put(LOCAL_T, Date.now());
       cloudQueue();
+      shareOnLocalChange(key);
     }
     function snapshotState() {
       const keys = {};
       SYNC_KEYS().forEach(k => { const v = store.get(k, undefined); if (v !== undefined) keys[k] = JSON.stringify(v); });
       return keys;
     }
-    function rehydrate() {
+    function rehydrate() { loadStateVars(); renderAllState(); }
+    function loadStateVars() {
       itinerary = store.get(KEY.itin, null) || clone(DEFAULT_DAYS);
       expenses = store.get(KEY.exp, []);
       prepDone = store.get(KEY.prep, {});
@@ -2925,6 +2928,8 @@
       const r = store.get(KEY.rate, null);
       if (r) document.getElementById('exchangeRate').value = r;
       if (!itinerary.find(d => d.day === currentDay)) currentDay = itinerary[0].day;
+    }
+    function renderAllState() {
       renderDaySelector(); renderDayContent();
       renderFoodFilters(); renderFood();
       renderGiftCart(); renderGift();
@@ -3041,8 +3046,116 @@
       applyState(keys);
       store.put(LOCAL_T, Date.now());
       cloudQueue();
+      shareTouchAll();
       toggleBackupBox(false);
       toast('已還原備份的資料');
+    }
+
+    /* =========================================================
+       5t. 旅伴即時同步（Firebase Realtime Database：REST 寫入 + 串流接收）
+       共用：行程（含打勾）、記帳、布料清單、伴手禮清單；其餘各自保存
+       ========================================================= */
+    const SHARE_DB = 'https://tokyo-trip-9fe07-default-rtdb.asia-southeast1.firebasedatabase.app';   // 例：https://xxxx-default-rtdb.asia-southeast1.firebasedatabase.app（留空 = 不同步）
+    const SHARE_TRIP = 'nippori-J6tqrNHCOHgD5p2m';
+    const SHARE_MAP = () => ({ ['itin_' + KEY.itin.split('_').pop()]: KEY.itin, exp: KEY.exp, fabric: KEY.fabric, gift: KEY.gift });
+    const SHARE_T = 'tk2026_share_t';
+    const share = { state: SHARE_DB ? 'connecting' : 'off', es: null, timers: {}, pending: false, lastToast: 0, id: store.get('tk2026_client', null) };
+    if (!share.id) { share.id = 'c' + Math.random().toString(36).slice(2, 10); store.put('tk2026_client', share.id); }
+    let shareT = store.get(SHARE_T, {});
+    const shareUrl = name => `${SHARE_DB.replace(/\/+$/, '')}/trips/${SHARE_TRIP}${name ? '/' + name : ''}.json`;
+    const shareLocalT = name => shareT[name] || (store.get(SHARE_MAP()[name], undefined) !== undefined ? store.get(LOCAL_T, 0) : 0);
+    function shareOnLocalChange(key) {
+      if (!SHARE_DB) return;
+      const map = SHARE_MAP(), name = Object.keys(map).find(n => map[n] === key);
+      if (!name) return;
+      shareT[name] = Date.now(); store.put(SHARE_T, shareT);
+      shareQueue(name);
+    }
+    function shareQueue(name, delay = 700) {
+      clearTimeout(share.timers[name]);
+      share.timers[name] = setTimeout(() => sharePush(name), delay);
+    }
+    async function sharePush(name, attempt = 0) {
+      const key = SHARE_MAP()[name], val = store.get(key, undefined);
+      if (!SHARE_DB || val === undefined) return;
+      const t = shareT[name] || shareLocalT(name) || Date.now();
+      shareT[name] = t; store.put(SHARE_T, shareT);
+      try {
+        const res = await fetch(shareUrl(name), { method: 'PUT', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify({ t, by: share.id, v: JSON.stringify(val) }) });
+        if (!res.ok) throw new Error('http ' + res.status);
+        if (share.state !== 'live') { share.state = 'live'; renderShareStatus(); }
+      } catch (e) {
+        share.state = 'retry'; renderShareStatus();
+        if (attempt < 5) share.timers[name] = setTimeout(() => sharePush(name, attempt + 1), 4000 * (attempt + 1));
+      }
+    }
+    function shareTouchAll() {
+      if (!SHARE_DB) return;
+      const now = Date.now();
+      Object.keys(SHARE_MAP()).forEach(name => { shareT[name] = now; shareQueue(name, 100); });
+      store.put(SHARE_T, shareT);
+    }
+    function shareApply(name, rec) {
+      const key = SHARE_MAP()[name];
+      if (!key || !rec || typeof rec.v !== 'string' || typeof rec.t !== 'number') return false;
+      if (rec.t <= shareLocalT(name)) return false;
+      let val;
+      try { val = JSON.parse(rec.v); } catch (e) { return false; }
+      store.put(key, val);
+      shareT[name] = rec.t; store.put(SHARE_T, shareT);
+      return rec.by !== share.id;
+    }
+    function shareRefresh() {
+      const a = document.activeElement;
+      const typing = a && (a.tagName === 'TEXTAREA' || (a.tagName === 'INPUT' && !/checkbox|radio|button|submit/.test(a.type)));
+      loadStateVars();
+      if (typing) { share.pending = true; return; }
+      share.pending = false;
+      renderAllState();
+    }
+    document.addEventListener('focusout', () => { if (share.pending) setTimeout(shareRefresh, 60); });
+    function shareMerge(all) {
+      let changed = false;
+      Object.keys(SHARE_MAP()).forEach(name => {
+        const rec = all && all[name];
+        if (rec && shareApply(name, rec)) changed = true;
+        else if (shareLocalT(name) > (rec && typeof rec.t === 'number' ? rec.t : 0)) shareQueue(name, 200);
+      });
+      shareChanged(changed);
+    }
+    function shareChanged(changed) {
+      if (!changed) return;
+      shareRefresh();
+      if (Date.now() - share.lastToast > 4000) { share.lastToast = Date.now(); toast('🔄 已同步旅伴的更新'); }
+    }
+    function shareInit() {
+      renderShareStatus();
+      if (!SHARE_DB || typeof EventSource !== 'function') return;
+      try {
+        const es = new EventSource(shareUrl(''));
+        share.es = es;
+        const onData = ev => {
+          let msg;
+          try { msg = JSON.parse(ev.data); } catch (e) { return; }
+          if (!msg || typeof msg.path !== 'string') return;
+          if (share.state !== 'live') { share.state = 'live'; renderShareStatus(); }
+          const parts = msg.path.split('/').filter(Boolean);
+          if (!parts.length) shareMerge(msg.data);
+          else if (parts.length === 1) shareChanged(shareApply(parts[0], msg.data));
+        };
+        es.addEventListener('put', onData);
+        es.addEventListener('patch', onData);
+        es.onerror = () => { if (share.state !== 'retry') { share.state = 'retry'; renderShareStatus(); } };
+      } catch (e) { share.state = 'retry'; renderShareStatus(); }
+    }
+    function renderShareStatus() {
+      const el = document.getElementById('shareStatus');
+      if (!el) return;
+      if (!SHARE_DB) { el.innerHTML = ''; return; }
+      const [icon, title, tone] = share.state === 'live' ? ['🔄', '已和旅伴即時同步', 'bg-teal-50 border-teal-200 text-teal-800']
+        : share.state === 'retry' ? ['📡', '同步連線中斷，恢復網路後會自動補上', 'bg-amber-50 border-amber-200 text-amber-900']
+        : ['⏳', '正在連線同步…', 'bg-tk-bg border-tk-line text-tk-ink'];
+      el.innerHTML = `<div class="rounded-xl border p-3 ${tone}"><p class="text-sm font-bold">${icon} ${title}</p><p class="text-xs mt-1 leading-relaxed">所有打開這個網址的人共用同一份：行程（含自訂行程與完成打勾、集章）、記帳、布料清單、伴手禮清單。出發前確認、想去的店、旅行手帳、雨天模式仍是各自的。按「重設」也會重設所有人的行程。</p></div>`;
     }
 
     /* =========================================================
@@ -3623,6 +3736,7 @@
     store.put('tk2026_visits', store.get('tk2026_visits', 0) + 1);
     renderSaveCard();
     cloudInit();
+    shareInit();
     heroShow();
     fxInit();
     setInterval(tickCountdown, 1000);
