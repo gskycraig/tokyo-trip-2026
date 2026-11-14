@@ -256,6 +256,19 @@
       <div class="relative">
         <input id="foodSearch" type="search" oninput="foodQuery=this.value.trim();renderFood()" placeholder="🔍 搜尋店名、料理，例如：沾麵、蛋包飯、銅鑼燒" class="w-full px-4 py-2.5 rounded-xl bg-white border border-tk-line text-sm focus:outline-none focus:border-tk-night" />
       </div>
+      <details class="bg-white rounded-2xl border border-dashed border-tk-night/30">
+        <summary class="px-4 py-3 cursor-pointer text-sm font-bold text-tk-night">✏️ 新增自己的餐廳或咖啡店</summary>
+        <form onsubmit="addCustomFood(event)" class="px-4 pb-4 grid grid-cols-2 gap-2">
+          <label for="cfName" class="col-span-2 text-xs text-tk-muted">店名<input id="cfName" required maxlength="60" placeholder="例如：一蘭 新宿中央東口店" class="mt-1 w-full px-3 py-2 rounded-xl bg-tk-bg border border-tk-line text-sm text-tk-ink focus:outline-none focus:border-tk-night" /></label>
+          <label for="cfCat" class="text-xs text-tk-muted">分類<select id="cfCat" class="mt-1 w-full px-3 py-2 rounded-xl bg-tk-bg border border-tk-line text-sm text-tk-ink focus:outline-none focus:border-tk-night"></select></label>
+          <label for="cfArea" class="text-xs text-tk-muted">區域<select id="cfArea" class="mt-1 w-full px-3 py-2 rounded-xl bg-tk-bg border border-tk-line text-sm text-tk-ink focus:outline-none focus:border-tk-night"></select></label>
+          <label for="cfDay" class="text-xs text-tk-muted">哪天順路（可不選）<select id="cfDay" class="mt-1 w-full px-3 py-2 rounded-xl bg-tk-bg border border-tk-line text-sm text-tk-ink focus:outline-none focus:border-tk-night"></select></label>
+          <label for="cfTime" class="text-xs text-tk-muted">大約幾點去<input id="cfTime" type="time" value="12:00" class="mt-1 w-full px-3 py-2 rounded-xl bg-tk-bg border border-tk-line text-sm text-tk-ink focus:outline-none focus:border-tk-night" /></label>
+          <label for="cfNote" class="col-span-2 text-xs text-tk-muted">備註（可不填）<input id="cfNote" maxlength="200" placeholder="例如：朋友推薦、想吃的品項" class="mt-1 w-full px-3 py-2 rounded-xl bg-tk-bg border border-tk-line text-sm text-tk-ink focus:outline-none focus:border-tk-night" /></label>
+          <button type="submit" class="col-span-2 py-2.5 rounded-xl bg-tk-night text-white text-sm font-bold">加入美食庫</button>
+          <p class="col-span-2 text-[11px] text-tk-muted">加入後會同步給所有旅伴；有選日期的話，那天的「今日順路吃喝」也會出現。</p>
+        </form>
+      </details>
       <div id="foodKindFilters" class="flex gap-2 overflow-x-auto no-scrollbar -mx-4 px-4"></div>
       <div id="foodCatFilters" class="flex gap-2 overflow-x-auto no-scrollbar -mx-4 px-4"></div>
       <div id="foodAreaFilters" class="flex gap-2 overflow-x-auto no-scrollbar -mx-4 px-4"></div>
@@ -274,6 +287,16 @@
         </div>
       </div>
       <div class="grid grid-cols-1 md:grid-cols-2 gap-3" id="giftWhere"></div>
+      <details class="bg-white rounded-2xl border border-dashed border-tk-night/30">
+        <summary class="px-4 py-3 cursor-pointer text-sm font-bold text-tk-night">✏️ 新增自己的伴手禮</summary>
+        <form onsubmit="addCustomGift(event)" class="px-4 pb-4 grid grid-cols-2 gap-2">
+          <label for="cgName" class="col-span-2 text-xs text-tk-muted">品名<input id="cgName" required maxlength="60" placeholder="例如：ヨックモック 雪茄蛋捲" class="mt-1 w-full px-3 py-2 rounded-xl bg-tk-bg border border-tk-line text-sm text-tk-ink focus:outline-none focus:border-tk-night" /></label>
+          <label for="cgWhere" class="text-xs text-tk-muted">在哪裡買<select id="cgWhere" class="mt-1 w-full px-3 py-2 rounded-xl bg-tk-bg border border-tk-line text-sm text-tk-ink focus:outline-none focus:border-tk-night"></select></label>
+          <label for="cgNote" class="text-xs text-tk-muted">備註（可不填）<input id="cgNote" maxlength="200" placeholder="例如：幫同事帶 3 盒" class="mt-1 w-full px-3 py-2 rounded-xl bg-tk-bg border border-tk-line text-sm text-tk-ink focus:outline-none focus:border-tk-night" /></label>
+          <button type="submit" class="col-span-2 py-2.5 rounded-xl bg-tk-night text-white text-sm font-bold">加入伴手禮</button>
+          <p class="col-span-2 text-[11px] text-tk-muted">加入後會同步給所有旅伴，也可以按「＋ 加入清單」記數量。</p>
+        </form>
+      </details>
       <div id="giftCart"></div>
       <div id="giftFilters" class="flex gap-2 overflow-x-auto no-scrollbar -mx-4 px-4"></div>
       <div id="giftGrid" class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-4"></div>
@@ -1961,6 +1984,119 @@
        ========================================================= */
     const KEY = { itin: 'tk2026_itinerary_v4', exp: 'tk2026_expenses', prep: 'tk2026_prep', fabric: 'tk2026_fabric', rate: 'tk2026_rate', api: 'tk2026_gemini_key', fav: 'tk2026_food_fav', gift: 'tk2026_gift' };
     let foodFav = store.get(KEY.fav, {});
+
+    // ---- 自己加的店與伴手禮（會同步給旅伴）；所有欄位都先清理再使用 ----
+    const KEY_FOODX = 'tk2026_food_custom', KEY_GIFTX = 'tk2026_gift_custom';
+    const str = (v, n) => String(v ?? '').slice(0, n);
+    const ID_RE = /^[A-Za-z0-9_-]{1,60}$/, TIME_RE = /^\d{2}:\d{2}$/, DATE_RE = /^\d{2}\/\d{2}$/;
+    const CAFE_CATS = ['☕ 咖啡', '🍡 和菓子甘味', '🍰 甜點'];
+    const CAT_SCENE = { '🍜 拉麵': 'ramen', '🥩 燒肉': 'yakiniku', '🐮 牛舌': 'gyutan', '🍣 壽司海鮮': 'sushi', '🍱 鰻魚': 'unagi', '🐷 炸豬排': 'katsu', '🍤 天婦羅': 'tempura', '🥢 蕎麥烏龍': 'soba', '🍛 洋食咖哩': 'curry', '🏮 居酒屋橫丁': 'izakaya', '🍡 和菓子甘味': 'dango', '🍰 甜點': 'parfait', '☕ 咖啡': 'cafe', '🛍️ 美食街小吃': 'foodcourt' };
+    const GIFT_COLORS = ['#E58AA0', '#7FB8E0', '#9CC45A', '#F2A33A', '#C9A0DC', '#D0492F', '#2F9C8E'];
+    const hashNum = t => { let h = 0; for (const c of String(t)) h = (h * 31 + c.charCodeAt(0)) >>> 0; return h; };
+    function cleanFoodRaw(arr) {
+      if (!Array.isArray(arr)) return [];
+      const dates = DEFAULT_DAYS.map(d => d.date);
+      return arr.slice(0, 200).filter(r => r && ID_RE.test(r.id) && str(r.name, 60).trim()).map(r => ({
+        id: r.id, name: str(r.name, 60).trim(), cat: FOOD_CATS.includes(r.cat) ? r.cat : '🛍️ 美食街小吃', area: FOOD_AREAS.includes(r.area) ? r.area : '其他地區',
+        days: Array.isArray(r.days) ? r.days.filter(x => dates.includes(x)).slice(0, 8) : [], slot: TIME_RE.test(r.slot) ? r.slot : '12:00', note: str(r.note, 200)
+      }));
+    }
+    function cleanGiftRaw(arr) {
+      if (!Array.isArray(arr)) return [];
+      return arr.slice(0, 200).filter(r => r && ID_RE.test(r.id) && str(r.name, 60).trim()).map(r => ({
+        id: r.id, name: str(r.name, 60).trim(), where: GIFT_WHERE[r.where] ? r.where : 'other', note: str(r.note, 200)
+      }));
+    }
+    const makeFood = r => ({ id: r.id, custom: true, kind: CAFE_CATS.includes(r.cat) ? 'cafe' : 'food', cat: r.cat, name: r.name, sub: '自己加的', area: r.area, days: r.days, slot: r.slot,
+      when: r.days.length ? '自己加的・順路' : '自己加的', scene: CAT_SCENE[r.cat] || 'foodcourt', seed: hashNum(r.id) % 90 + 1, desc: r.note || '自己加的店。', tip: '自己加的店，營業時間與公休請用地圖確認。', map: r.name + ' 東京' });
+    const makeGift = r => ({ id: r.id, custom: true, name: r.name, sub: '自己加的', color: GIFT_COLORS[hashNum(r.id) % GIFT_COLORS.length], where: [r.where], desc: r.note || '自己加的伴手禮。', tip: '自己加的，記得確認保存期限、能不能帶上飛機。' });
+    let customFood = cleanFoodRaw(store.get(KEY_FOODX, []));
+    let customGifts = cleanGiftRaw(store.get(KEY_GIFTX, []));
+    function syncCustomLists() {
+      for (let i = FOOD.length - 1; i >= 0; i--) if (FOOD[i].custom) FOOD.splice(i, 1);
+      customFood.forEach(r => { if (!FOOD.some(f => f.id === r.id)) FOOD.push(makeFood(r)); });
+      for (let i = GIFTS.length - 1; i >= 0; i--) if (GIFTS[i].custom) GIFTS.splice(i, 1);
+      customGifts.forEach(r => { if (!GIFTS.some(g => g.id === r.id)) GIFTS.push(makeGift(r)); });
+    }
+    syncCustomLists();
+    function addCustomFood(e) {
+      e.preventDefault();
+      const v = id => document.getElementById(id).value;
+      const raw = cleanFoodRaw([{ id: 'u' + Date.now().toString(36) + Math.random().toString(36).slice(2, 6), name: v('cfName'), cat: v('cfCat'), area: v('cfArea'), days: v('cfDay') ? [v('cfDay')] : [], slot: v('cfTime'), note: v('cfNote') }])[0];
+      if (!raw) return;
+      customFood.push(raw);
+      store.set(KEY_FOODX, customFood);
+      syncCustomLists();
+      document.getElementById('cfName').value = ''; document.getElementById('cfNote').value = '';
+      foodKind = 'mine'; foodCat = 'all'; foodArea = 'all';
+      renderFoodFilters(); renderFood(); renderDayFood();
+      toast(`已加入「${raw.name}」`);
+    }
+    function deleteCustomFood(id) {
+      customFood = customFood.filter(r => r.id !== id);
+      store.set(KEY_FOODX, customFood);
+      syncCustomLists();
+      if (foodKind === 'mine' && !customFood.length) foodKind = 'all';
+      renderFoodFilters(); renderFood(); renderDayFood();
+      toast('已刪除');
+    }
+    function addCustomGift(e) {
+      e.preventDefault();
+      const v = id => document.getElementById(id).value;
+      const raw = cleanGiftRaw([{ id: 'ug' + Date.now().toString(36) + Math.random().toString(36).slice(2, 6), name: v('cgName'), where: v('cgWhere'), note: v('cgNote') }])[0];
+      if (!raw) return;
+      customGifts.push(raw);
+      store.set(KEY_GIFTX, customGifts);
+      syncCustomLists();
+      document.getElementById('cgName').value = ''; document.getElementById('cgNote').value = '';
+      giftFilter = 'mine';
+      renderGiftFilters(); renderGift(); renderGiftCart();
+      toast(`已加入「${raw.name}」`);
+    }
+    function deleteCustomGift(id) {
+      customGifts = customGifts.filter(r => r.id !== id);
+      store.set(KEY_GIFTX, customGifts);
+      if (giftCart[id]) { delete giftCart[id]; store.set(KEY.gift, giftCart); }
+      syncCustomLists();
+      if (giftFilter === 'mine' && !customGifts.length) giftFilter = 'all';
+      renderGiftFilters(); renderGift(); renderGiftCart();
+      toast('已刪除');
+    }
+    // 從旅伴同步進來的資料，一律重建成乾淨的結構再使用
+    function cleanItinerary(val) {
+      if (!Array.isArray(val)) throw new Error('bad itinerary');
+      const strs = (a, n, len) => Array.isArray(a) ? a.slice(0, n).map(x => str(x, len)) : undefined;
+      return DEFAULT_DAYS.map(base => {
+        const src = val.find(d => d && d.day === base.day);
+        const day = clone(base);
+        if (!src || !Array.isArray(src.events)) return day;
+        day.events = src.events.slice(0, 60).filter(e => e && ID_RE.test(e.id) && TIME_RE.test(e.time)).map(e => {
+          const o = { id: e.id, time: e.time, type: TYPES[e.type] ? e.type : '🚃 交通', title: str(e.title, 120), note: str(e.note, 400), map: str(e.map || e.title, 120) };
+          if (TIME_RE.test(e.end)) o.end = e.end;
+          if (e.timeLabel) o.timeLabel = str(e.timeLabel, 20);
+          if (e.alt) o.alt = str(e.alt, 300);
+          if (e.altMap) o.altMap = str(e.altMap, 120);
+          if (ID_RE.test(e.foodId)) o.foodId = e.foodId;
+          if (e.done) o.done = true;
+          if (e.custom) o.custom = true;
+          const route = strs(e.route, 8, 60), tags = strs(e.tags, 8, 60);
+          if (route) o.route = route;
+          if (tags) o.tags = tags;
+          if (Array.isArray(e.links)) o.links = e.links.slice(0, 6).filter(l => l && /^https:\/\//.test(l.url)).map(l => ({ label: str(l.label, 40), url: str(l.url, 300) }));
+          return o;
+        });
+        return day;
+      });
+    }
+    function cleanShared(name, val) {
+      if (name.startsWith('itin')) return cleanItinerary(val);
+      if (name === 'exp') return (Array.isArray(val) ? val : []).slice(0, 500).map(x => ({ name: str(x && x.name, 80), amount: Number.isFinite(Number(x && x.amount)) ? Number(x.amount) : 0, cat: str(x && x.cat, 20), date: str(x && x.date, 10) }));
+      if (name === 'fabric') return (Array.isArray(val) ? val : []).slice(0, 200).filter(i => i && ID_RE.test(i.id)).map(i => ({ id: i.id, day: DATE_RE.test(i.day) ? i.day : '12/03', name: str(i.name, 60), note: str(i.note, 80), done: !!i.done }));
+      if (name === 'gift') { const o = {}; Object.keys(val && typeof val === 'object' ? val : {}).slice(0, 300).forEach(k => { const n = Math.floor(Number(val[k])); if (ID_RE.test(k) && n > 0) o[k] = Math.min(n, 99); }); return o; }
+      if (name === 'foodx') return cleanFoodRaw(val);
+      if (name === 'giftx') return cleanGiftRaw(val);
+      throw new Error('unknown key');
+    }
     let foodKind = 'all', foodArea = 'all', foodCat = 'all', foodQuery = '';
     let itinerary = store.get(KEY.itin, null) || clone(DEFAULT_DAYS);
     let expenses = store.get(KEY.exp, []);
@@ -2898,7 +3034,7 @@
     /* =========================================================
        5s. 資料保存：瀏覽器、Claude 帳號雲端、備份代碼
        ========================================================= */
-    const SYNC_KEYS = () => [KEY.itin, KEY.exp, KEY.prep, KEY.fabric, KEY.fav, KEY.gift, KEY.rate, 'tk2026_journal', 'tk2026_rain'];
+    const SYNC_KEYS = () => [KEY.itin, KEY.exp, KEY.prep, KEY.fabric, KEY.fav, KEY.gift, KEY.rate, 'tk2026_journal', 'tk2026_rain', KEY_FOODX, KEY_GIFTX];
     const LOCAL_T = 'tk2026_local_t';
     const bootT = store.get(LOCAL_T, 0);
     const cloudSync = { ref: null, state: 'off', timer: 0, busy: false, again: false };
@@ -2923,6 +3059,9 @@
       fabricItems = store.get(KEY.fabric, null) || clone(DEFAULT_FABRIC);
       foodFav = store.get(KEY.fav, {});
       giftCart = store.get(KEY.gift, {});
+      customFood = cleanFoodRaw(store.get(KEY_FOODX, []));
+      customGifts = cleanGiftRaw(store.get(KEY_GIFTX, []));
+      syncCustomLists();
       journal = store.get('tk2026_journal', {});
       rainDays = store.get('tk2026_rain', {});
       const r = store.get(KEY.rate, null);
@@ -3057,7 +3196,7 @@
        ========================================================= */
     const SHARE_DB = 'https://tokyo-trip-9fe07-default-rtdb.asia-southeast1.firebasedatabase.app';   // 例：https://xxxx-default-rtdb.asia-southeast1.firebasedatabase.app（留空 = 不同步）
     const SHARE_TRIP = 'nippori-J6tqrNHCOHgD5p2m';
-    const SHARE_MAP = () => ({ ['itin_' + KEY.itin.split('_').pop()]: KEY.itin, exp: KEY.exp, fabric: KEY.fabric, gift: KEY.gift });
+    const SHARE_MAP = () => ({ ['itin_' + KEY.itin.split('_').pop()]: KEY.itin, exp: KEY.exp, fabric: KEY.fabric, gift: KEY.gift, foodx: KEY_FOODX, giftx: KEY_GIFTX });
     const SHARE_T = 'tk2026_share_t';
     const share = { state: SHARE_DB ? 'connecting' : 'off', es: null, timers: {}, pending: false, lastToast: 0, id: store.get('tk2026_client', null) };
     if (!share.id) { share.id = 'c' + Math.random().toString(36).slice(2, 10); store.put('tk2026_client', share.id); }
@@ -3100,7 +3239,7 @@
       if (!key || !rec || typeof rec.v !== 'string' || typeof rec.t !== 'number') return false;
       if (rec.t <= shareLocalT(name)) return false;
       let val;
-      try { val = JSON.parse(rec.v); } catch (e) { return false; }
+      try { val = cleanShared(name, JSON.parse(rec.v)); } catch (e) { return false; }
       store.put(key, val);
       shareT[name] = rec.t; store.put(SHARE_T, shareT);
       return rec.by !== share.id;
@@ -3210,7 +3349,7 @@
     function setFoodFilter(k, v) { if (k === 'kind') foodKind = v; else if (k === 'cat') foodCat = v; else foodArea = v; renderFoodFilters(); renderFood(); }
     function renderFoodFilters() {
       const chip = (k, v, label, cur, small) => `<button onclick="setFoodFilter('${k}','${v}')" aria-pressed="${v === cur}" class="chip-filter shrink-0 ${small ? 'px-3 py-1 text-[11px]' : 'px-4 py-1.5 text-xs'} rounded-full font-bold transition">${label}</button>`;
-      const kinds = [['all', '全部'], ['must', `⭐ 必吃（${FOOD.filter(f => f.must).length}）`], ['route', '📅 行程順路'], ['food', '🍱 吃飯'], ['cafe', '☕ 咖啡甜點'], ['fav', `♥ 想去（${Object.values(foodFav).filter(Boolean).length}）`]];
+      const kinds = [['all', '全部'], ['must', `⭐ 必吃（${FOOD.filter(f => f.must).length}）`], ['route', '📅 行程順路'], ['food', '🍱 吃飯'], ['cafe', '☕ 咖啡甜點'], ['mine', `✏️ 自己加的（${customFood.length}）`], ['fav', `♥ 想去（${Object.values(foodFav).filter(Boolean).length}）`]];
       document.getElementById('foodKindFilters').innerHTML = kinds.map(([k, l]) => chip('kind', k, l, foodKind)).join('');
       document.getElementById('foodCatFilters').innerHTML = [chip('cat', 'all', '🍽️ 全部分類', foodCat)].concat(
         FOOD_CATS.map(c => chip('cat', c, `${c} <span class="opacity-60">${FOOD.filter(f => f.cat === c).length}</span>`, foodCat))).join('');
@@ -3221,7 +3360,7 @@
     function renderFood() {
       const q = foodQuery.toLowerCase();
       const list = FOOD.filter(f =>
-        (foodKind === 'all' || (foodKind === 'fav' ? foodFav[f.id] : foodKind === 'must' ? f.must : foodKind === 'route' ? f.days.length : f.kind === foodKind)) &&
+        (foodKind === 'all' || (foodKind === 'fav' ? foodFav[f.id] : foodKind === 'mine' ? f.custom : foodKind === 'must' ? f.must : foodKind === 'route' ? f.days.length : f.kind === foodKind)) &&
         (foodCat === 'all' || f.cat === foodCat) &&
         (foodArea === 'all' || f.area === foodArea) &&
         (!q || [f.name, f.sub, f.area, f.cat, f.desc, f.tip].join(' ').toLowerCase().includes(q))
@@ -3240,7 +3379,7 @@
           <div class="p-4 flex-1 flex flex-col gap-2.5">
             <div>
               <p class="text-xs font-bold text-tk-maple">${esc(f.area)}<span class="text-tk-muted font-medium">・${esc(f.sub)}</span></p>
-              <h3 class="font-jp font-bold text-base text-tk-night mt-0.5">${esc(f.name)}</h3>
+              <h3 class="font-jp font-bold text-base text-tk-night mt-0.5">${esc(f.name)}${f.custom ? ' <span class="align-middle text-[10px] font-bold px-1.5 py-0.5 rounded-full bg-tk-mapleSoft text-tk-maple">✏️ 自己加的</span>' : ''}</h3>
             </div>
             <div class="flex flex-wrap gap-1.5">
               ${f.days.length ? f.days.map(d => `<span class="text-[11px] px-2 py-0.5 rounded-full bg-tk-goldSoft text-tk-ink font-bold">📅 ${d}</span>`).join('') : '<span class="text-[11px] px-2 py-0.5 rounded-full bg-stone-100 text-stone-600 font-bold">📌 參考備選</span>'}
@@ -3251,7 +3390,9 @@
             <div class="mt-auto flex gap-2 pt-3 border-t border-tk-line/70">
               <a href="${mapUrl(f.map)}" target="_blank" rel="noopener" title="在 Google 地圖看這家店的位置與顧客實拍照片" class="flex-1 text-center py-2 rounded-xl bg-tk-bg border border-tk-line text-xs font-bold hover:border-tk-night transition">📍 地圖・實拍</a>
               <button onclick="openAddFood('${f.id}')" class="flex-1 py-2 rounded-xl bg-tk-night text-white text-xs font-bold hover:bg-tk-nightSoft transition">＋ 加入行程</button>
-              <button onclick="askAiAboutPlace('${esc(f.name)}')" class="px-3 py-2 rounded-xl bg-tk-goldSoft text-xs font-bold" aria-label="問 AI">🤖</button>
+              ${f.custom
+                ? `<button onclick="deleteCustomFood('${f.id}')" class="px-3 py-2 rounded-xl bg-tk-bg border border-tk-line text-xs font-bold text-tk-muted hover:text-tk-maple" aria-label="刪除這家店">刪除</button>`
+                : `<button onclick="askAiAboutPlace('${esc(f.name)}')" class="px-3 py-2 rounded-xl bg-tk-goldSoft text-xs font-bold" aria-label="問 AI">🤖</button>`}
             </div>
           </div>
         </article>`).join('')
@@ -3338,12 +3479,12 @@
         </div>`;
     }
     function renderGiftFilters() {
-      const opts = [['all', '全部'], ['must', '⭐ 必買'], ...Object.entries(GIFT_WHERE).map(([k, w]) => [k, w.label])];
+      const opts = [['all', '全部'], ['must', '⭐ 必買'], ['mine', `✏️ 自己加的（${customGifts.length}）`], ...Object.entries(GIFT_WHERE).map(([k, w]) => [k, w.label])];
       document.getElementById('giftFilters').innerHTML = opts.map(([k, l]) =>
         `<button onclick="giftFilter='${k}';renderGiftFilters();renderGift()" aria-pressed="${k === giftFilter}" class="chip-filter shrink-0 px-4 py-1.5 rounded-full text-xs font-bold transition">${l}</button>`).join('');
     }
     function renderGift() {
-      const list = GIFTS.filter(g => giftFilter === 'all' || (giftFilter === 'must' ? g.must : g.where.includes(giftFilter)));
+      const list = GIFTS.filter(g => giftFilter === 'all' || (giftFilter === 'must' ? g.must : giftFilter === 'mine' ? g.custom : g.where.includes(giftFilter)));
       document.getElementById('giftGrid').innerHTML = list.map((g, i) => `
         <article class="bg-white rounded-2xl border ${g.must ? 'border-tk-gold/70' : 'border-tk-line'} shadow-sm overflow-hidden flex flex-col">
           <div class="relative h-32">${giftScene(g, 200 + i)}
@@ -3351,7 +3492,7 @@
           </div>
           <div class="p-4 flex-1 flex flex-col gap-2">
             <div>
-              <h3 class="font-jp font-bold text-base text-tk-night">${esc(g.name)}</h3>
+              <h3 class="font-jp font-bold text-base text-tk-night">${esc(g.name)}${g.custom ? ` <span class="align-middle text-[10px] font-bold px-1.5 py-0.5 rounded-full bg-tk-mapleSoft text-tk-maple">✏️ 自己加的</span> <button onclick="deleteCustomGift('${g.id}')" class="align-middle text-[11px] font-bold text-tk-muted hover:text-tk-maple underline underline-offset-2">刪除</button>` : ''}</h3>
               <p class="text-xs text-tk-muted">${esc(g.sub)}</p>
             </div>
             <div class="flex flex-wrap gap-1.5">${g.where.map(w => `<span class="text-[11px] px-2 py-0.5 rounded-full font-bold ${w === 'narita' ? 'bg-violet-100 text-violet-800' : 'bg-tk-goldSoft text-tk-ink'}">${GIFT_WHERE[w].label}</span>`).join('')}</div>
@@ -3768,6 +3909,10 @@
     const savedRate = store.get(KEY.rate, null);
     if (savedRate) document.getElementById('exchangeRate').value = savedRate;
 
+    document.getElementById('cfCat').innerHTML = FOOD_CATS.map(c => `<option value="${c}">${c}</option>`).join('');
+    document.getElementById('cfArea').innerHTML = FOOD_AREAS.filter(a => a !== '多店連鎖').map(a => `<option value="${a}">${a}</option>`).join('');
+    document.getElementById('cfDay').innerHTML = '<option value="">不指定</option>' + DEFAULT_DAYS.map(d => `<option value="${d.date}">${d.date}（${d.dow}）</option>`).join('');
+    document.getElementById('cgWhere').innerHTML = Object.entries(GIFT_WHERE).map(([k, w]) => `<option value="${k}">${w.label}</option>`).join('');
     renderSOS();
     store.put('tk2026_visits', store.get('tk2026_visits', 0) + 1);
     renderSaveCard();
