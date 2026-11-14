@@ -2069,7 +2069,7 @@
         const tags = ev.tags ? `<div class="flex flex-wrap gap-1.5 mt-2">${ev.tags.map(g => `<span class="text-[11px] px-2 py-0.5 rounded-full bg-pink-50 text-pink-800 border border-pink-200">🛒 ${esc(g)}</span>`).join('')}</div>` : '';
         const alt = ev.alt ? `<div class="mt-2.5 p-2.5 rounded-xl bg-amber-50 border border-amber-200 text-xs text-amber-900 flex items-start gap-2"><span>🔀</span><span class="flex-1">${esc(ev.alt)}</span>${ev.altMap ? `<a href="${mapUrl(ev.altMap)}" target="_blank" rel="noopener" class="shrink-0 font-bold underline underline-offset-2">備案導航</a>` : ''}</div>` : '';
         const links = (ev.links || []).map(l => `<a href="${esc(l.url)}" target="_blank" rel="noopener" class="px-2.5 py-1.5 rounded-lg bg-tk-bg border border-tk-line text-[11px] font-bold text-tk-ink hover:border-tk-night transition">🔗 ${esc(l.label)}</a>`).join('');
-        const del = ev.custom ? `<button onclick="deleteEvent('${ev.id}')" class="px-2.5 py-1.5 rounded-lg text-[11px] font-bold text-tk-muted hover:text-tk-maple">刪除</button>` : '';
+        const del = `<button onclick="deleteEvent('${ev.id}')" class="px-2.5 py-1.5 rounded-lg text-[11px] font-bold text-tk-muted hover:text-tk-maple">${ev.custom ? '刪除' : '移除'}</button>`;
         return `
           <li class="relative pl-[5rem] md:pl-[6rem]">
             <div class="absolute left-0 top-4 w-[3.3rem] md:w-[4.3rem] text-right">${timeHtml}</div>
@@ -2097,7 +2097,7 @@
               </div>
             </div>
           </li>`;
-      }).join('');
+      }).join('') + removedEventsHtml(d);
       renderDayFood();
       renderDayRoute();
       renderTomorrow();
@@ -3376,10 +3376,46 @@
       if (ev.done) celebrate(ev, itinerary.find(d => d.day === currentDay));
       renderDayContent();
     }
+    let delArm = { id: null, t: 0 };
     function deleteEvent(id) {
       const d = itinerary.find(x => x.day === currentDay);
+      const ev = d.events.find(e => e.id === id);
+      if (!ev) return;
+      // 原定行程要按兩次才移除，避免誤觸；移除後可在當天最下面還原
+      if (!ev.custom && !(delArm.id === id && Date.now() - delArm.t < 4000)) {
+        delArm = { id, t: Date.now() };
+        toast('再按一次「移除」就會拿掉這個行程，之後可在當天最下面還原');
+        return;
+      }
+      delArm = { id: null, t: 0 };
       d.events = d.events.filter(e => e.id !== id);
       saveItinerary(); renderDaySelector(); renderDayContent();
+      toast(ev.custom ? `已刪除「${ev.title}」` : `已移除「${ev.title}」，可在當天最下面還原`);
+    }
+    function removedEvents(d) {
+      const def = DEFAULT_DAYS.find(x => x.day === d.day);
+      return def ? def.events.filter(e => !d.events.some(x => x.id === e.id)) : [];
+    }
+    function removedEventsHtml(d) {
+      const list = removedEvents(d);
+      if (!list.length) return '';
+      return `
+        <li class="relative pl-[5rem] md:pl-[6rem]">
+          <div class="rounded-2xl border border-dashed border-tk-line p-3 space-y-2">
+            <p class="text-xs font-bold text-tk-muted">已移除的原定行程（點一下還原）</p>
+            <div class="flex flex-wrap gap-2">${list.map(e => `<button onclick="restoreEvent('${e.id}')" class="chip-filter px-3 py-1.5 rounded-full text-xs font-bold">↩︎ ${esc(e.timeLabel || e.time)} ${esc(e.title)}</button>`).join('')}</div>
+          </div>
+        </li>`;
+    }
+    function restoreEvent(id) {
+      const d = itinerary.find(x => x.day === currentDay);
+      const def = DEFAULT_DAYS.find(x => x.day === d.day);
+      const ev = def && def.events.find(e => e.id === id);
+      if (!ev || d.events.some(e => e.id === id)) return;
+      d.events.push(clone(ev));
+      d.events.sort((a, b) => a.time.localeCompare(b.time));
+      saveItinerary(); renderDaySelector(); renderDayContent();
+      toast(`已還原「${ev.title}」`);
     }
     function addCustomEvent() {
       const title = document.getElementById('newEvTitle').value.trim();
