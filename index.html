@@ -2439,47 +2439,107 @@
       hibiya: [248, 186, '日比谷'], korakuen: [212, 116, '後樂園・巨蛋'], yanaka: [222, 40, '谷中']
     };
     const LOOP = ['ikebukuro', 'nippori', 'ueno', 'akihabara', 'tokyo', 'yurakucho', 'shimbashi', 'shinagawa', 'ebisu', 'shibuya', 'harajuku', 'shinjuku'];
-    const ROUTES = {
-      1: { stops: ['narita', 'nippori', 'tokyo', 'nippori'], legs: [
-        ['成田空港第2ビル駅', '日暮里駅', '京成 Skyliner', 'skyliner', '約 40 分', '全車指定席，先買票劃位'],
-        ['日暮里駅', '東京駅', 'JR 山手線・京濱東北線', 'yamanote', '約 11 分', '丸之內口出站走行幸通'],
-        ['東京駅', '日暮里駅', 'JR 山手線・京濱東北線', 'yamanote', '約 11 分', '']] },
-      2: { stops: ['nippori', 'aoyama', 'nippori', 'omotesando', 'harajuku', 'nippori'], legs: [
-        ['日暮里駅', '青山一丁目駅', 'JR 到上野轉東京Metro 銀座線', 'ginza', '約 35 分', '青山通入口就在站旁'],
-        ['青山一丁目駅', '日暮里駅', '銀座線到上野轉 JR', 'ginza', '約 35 分', '12:45 前回到布街'],
-        ['日暮里駅', '表参道駅', 'JR 到上野轉銀座線', 'ginza', '約 35 分', ''],
-        ['原宿駅', '日暮里駅', 'JR 山手線', 'yamanote', '約 30 分', '走完燈海直接搭回']] },
-      3: { stops: ['nippori', 'gyoen', 'nippori', 'roppongi', 'nippori'], legs: [
-        ['日暮里駅', '新宿駅', 'JR 山手線', 'yamanote', '約 25 分', '出站走到新宿門約 10 分'],
-        ['新宿駅', '日暮里駅', 'JR 山手線', 'yamanote', '約 25 分', '13:00 逛布'],
-        ['日暮里駅', '六本木駅', 'JR 到上野轉東京Metro 日比谷線', 'hibiya', '約 30 分', '櫸坂 17:00 點燈'],
-        ['六本木駅', '日暮里駅', '日比谷線到上野轉 JR', 'hibiya', '約 30 分', '']] },
-      4: { stops: ['nippori', 'hibiya', 'nippori', 'shinjuku', 'yomiuriland', 'shinjuku', 'nippori'], legs: [
-        ['日暮里駅', '有楽町駅', 'JR 山手線・京濱東北線', 'yamanote', '約 15 分', '日比谷公園就在有樂町站旁'],
-        ['有楽町駅', '日暮里駅', 'JR 山手線・京濱東北線', 'yamanote', '約 15 分', '回日暮里午餐、短休'],
-        ['日暮里駅', '新宿駅', 'JR 山手線', 'yamanote', '約 25 分', '在新宿轉京王線'],
-        ['新宿駅', '京王よみうりランド駅', '京王線', 'keio', '約 35 分', '出站轉 Sky Shuttle 空中纜車上山'],
-        ['京王よみうりランド駅', '日暮里駅', '京王線到新宿轉 JR 山手線', 'keio', '約 1 小時', '19:00–19:30 搭纜車下山']] },
-      5: { stops: ['nippori', 'ueno', 'nippori', 'oshiage', 'nippori'], legs: [
-        ['日暮里駅', '上野駅', 'JR 山手線・京濱東北線', 'yamanote', '約 4 分', '公園口出站'],
-        ['上野駅', '日暮里駅', 'JR 山手線・京濱東北線', 'yamanote', '約 4 分', ''],
-        ['日暮里駅', '押上駅', '京成線（青砥轉車）', 'keisei', '約 25 分', '也可上野轉銀座線到淺草再轉車'],
-        ['押上駅', '日暮里駅', '京成線（青砥轉車）', 'keisei', '約 25 分', '']] },
-      6: { stops: ['nippori', 'hibiya', 'tokyo', 'minamifunabashi', 'tokyo', 'ebisu', 'nippori'], legs: [
-        ['日暮里駅', '有楽町駅', 'JR 山手線・京濱東北線', 'yamanote', '約 15 分', '日比谷公園短走'],
-        ['東京駅', '南船橋駅', 'JR 京葉線', 'keiyo', '約 25 分', '東京站轉京葉線要走 10–15 分'],
-        ['南船橋駅', '恵比寿駅', '京葉線到東京轉 JR 山手線', 'keiyo', '約 55 分', ''],
-        ['恵比寿駅', '日暮里駅', 'JR 山手線', 'yamanote', '約 35 分', '']] },
-      7: { stops: ['nippori', 'korakuen', 'nippori', 'korakuen', 'nippori'], legs: [
-        ['日暮里駅', '水道橋駅', 'JR 到秋葉原轉總武線（各站停車）', 'sobu', '約 20 分', '小石川後樂園、巨蛋城都在附近'],
-        ['水道橋駅', '日暮里駅', '總武線到秋葉原轉 JR', 'sobu', '約 20 分', '12:45 逛布'],
-        ['日暮里駅', '水道橋駅', 'JR 到秋葉原轉總武線', 'sobu', '約 20 分', '17:30 巨蛋城燈飾'],
-        ['水道橋駅', '日暮里駅', '總武線到秋葉原轉 JR', 'sobu', '約 20 分', '']] },
-      8: { stops: ['yanaka', 'nippori', 'narita'], legs: [
-        ['日暮里駅', '成田空港第2ビル駅', '京成 Skyliner', 'skyliner', '約 40 分', '在「空港第2ビル」下車，別坐到終點']] }
+    // 路線與交通卡依「當天實際的行程」自動產生：先判斷每個行程在哪一區，再串成移動順序
+    Object.assign(L_COL, { walk: '#8E8A84', oedo: '#B6007A', asakusa: '#E85298', unknown: '#9C9C94' });
+    Object.assign(ST, { ginza: [276, 194, '銀座・築地'], asakusa: [306, 82, '淺草'], kanda: [288, 144, '神田・日本橋'] });
+    const HOTEL_Q = 'アパホテル TKP日暮里駅前';
+    const ST_Q = {
+      nippori: '日暮里駅', narita: '成田空港第2ビル駅', tokyo: '東京駅', aoyama: '青山一丁目駅', omotesando: '表参道駅', harajuku: '原宿駅', shinjuku: '新宿駅', gyoen: '新宿御苑 新宿門',
+      roppongi: '六本木駅', hibiya: '日比谷公園', ueno: '上野駅', oshiage: '押上駅', minamifunabashi: '南船橋駅', ebisu: '恵比寿駅', korakuen: '水道橋駅', yomiuriland: '京王よみうりランド駅',
+      tachikawa: '立川駅', shibuya: '渋谷駅', ikebukuro: '池袋駅', shinagawa: '品川駅', akihabara: '秋葉原駅', ginza: '銀座駅', asakusa: '浅草駅', kanda: '神田駅'
     };
-    function routeMapSVG(day) {
-      const r = ROUTES[day];
+    // 原定行程各在哪一區（[所在, 結束時所在]）；名稱被改過或自己加的行程，改用關鍵字判斷
+    const DEFAULT_LOC = {
+      'd1-0': ['narita'], 'd1-a': ['nippori'], 'd1-1': ['nippori'], 'd1-2': ['tokyo'],
+      'd2-1': ['aoyama'], 'd2-2': ['nippori'], 'd2-3': ['nippori'], 'd2-4': ['omotesando', 'harajuku'],
+      'd3-1': ['gyoen'], 'd3-2': ['nippori'], 'd3-3': ['nippori'], 'd3-4': ['roppongi'],
+      'd4-1': ['hibiya'], 'd4-2': ['nippori'], 'd4-3': ['yomiuriland'], 'd4-4': ['yomiuriland'], 'd4-5': ['yomiuriland'], 'd4-6': ['nippori'],
+      'd5-1': ['ueno'], 'd5-2': ['ueno'], 'd5-3': ['oshiage'],
+      'd6-1': ['hibiya'], 'd6-2': ['minamifunabashi'], 'd6-3': ['ebisu'],
+      'd7-1': ['korakuen'], 'd7-2': ['nippori'], 'd7-3': ['nippori'], 'd7-4': ['korakuen'],
+      'd8-1': ['nippori'], 'd8-3': ['nippori'], 'd8-4': ['narita'], 'd8-4b': ['narita'], 'd8-5': ['narita']
+    };
+    const DEFAULT_TITLE = {};
+    DEFAULT_DAYS.forEach(d => d.events.forEach(e => { DEFAULT_TITLE[e.id] = e.title; }));
+    const LOC_WORDS = [
+      [/成田|機場|空港/, 'narita'], [/讀賣|読売|よみうり/, 'yomiuriland'], [/LaLaport|ららぽーと|南船橋/i, 'minamifunabashi'],
+      [/晴空塔|スカイツリー|押上|Solamachi|ソラマチ/i, 'oshiage'], [/巨蛋|ドーム|後樂園|後楽園|水道橋|LaQua|ラクーア/i, 'korakuen'],
+      [/惠比壽|恵比寿/, 'ebisu'], [/六本木|麻布|東京鐵塔|東京タワー/, 'roppongi'], [/表參道|表参道/, 'omotesando'], [/原宿|竹下/, 'harajuku'],
+      [/外苑|青山/, 'aoyama'], [/新宿御苑/, 'gyoen'], [/新宿|歌舞伎町|思い出横丁/, 'shinjuku'], [/澀谷|渋谷/, 'shibuya'], [/池袋/, 'ikebukuro'], [/品川/, 'shinagawa'],
+      [/秋葉原/, 'akihabara'], [/日比谷|有樂町|有楽町/, 'hibiya'], [/銀座|築地/, 'ginza'], [/淺草|浅草|雷門/, 'asakusa'], [/神田|日本橋/, 'kanda'],
+      [/上野|アメ横|阿美橫/, 'ueno'], [/丸之內|丸の内|東京站|東京駅|皇居/, 'tokyo'], [/立川|昭和紀念|昭和記念/, 'tachikawa'],
+      [/日暮里|谷中|飯店|APA|アパホテル|TOMATO|トマト|纖維街|繊維街|布店|午睡|午休|退房|整理行李|早餐/, 'nippori']
+    ];
+    const AREA_LOC = { '日暮里・谷中': 'nippori', '上野': 'ueno', '青山・表參道': 'omotesando', '新宿': 'shinjuku', '六本木・麻布': 'roppongi', '東京站・丸之內': 'tokyo', '惠比壽': 'ebisu',
+      '押上・晴空塔': 'oshiage', '南船橋': 'minamifunabashi', '水道橋・後樂園': 'korakuen', '神田・日本橋': 'kanda', '築地・銀座': 'ginza', '淺草': 'asakusa' };
+    function evLoc(ev) {
+      if (DEFAULT_LOC[ev.id] && DEFAULT_TITLE[ev.id] === ev.title) return DEFAULT_LOC[ev.id];
+      if (ev.foodId) { const f = FOOD.find(x => x.id === ev.foodId); if (f && AREA_LOC[f.area]) return [AREA_LOC[f.area]]; }
+      const text = `${ev.title} ${ev.map || ''}`;
+      const hit = LOC_WORDS.find(([re]) => re.test(text));
+      return hit ? [hit[1]] : [null];
+    }
+    // 已知的區間：[路線說明, 顏色, 大約時間, 提醒]；查不到的組合只給「即時路線」連結
+    const LEG_INFO = {
+      'narita|nippori': ['京成 Skyliner', 'skyliner', '約 40 分', '全車指定席；成田在「空港第2ビル」上下車'],
+      'nippori|tokyo': ['JR 山手線・京濱東北線', 'yamanote', '約 11 分', ''],
+      'aoyama|nippori': ['JR 到上野轉東京Metro 銀座線', 'ginza', '約 35 分', ''],
+      'nippori|omotesando': ['JR 到上野轉東京Metro 銀座線', 'ginza', '約 35 分', ''],
+      'harajuku|omotesando': ['沿表參道步行', 'walk', '約 15 分', ''],
+      'harajuku|nippori': ['JR 山手線', 'yamanote', '約 30 分', ''],
+      'gyoen|nippori': ['JR 山手線到新宿，再步行約 10 分', 'yamanote', '約 35 分', ''],
+      'gyoen|shinjuku': ['步行', 'walk', '約 10 分', ''],
+      'nippori|shinjuku': ['JR 山手線', 'yamanote', '約 25 分', ''],
+      'nippori|roppongi': ['JR 到上野轉東京Metro 日比谷線', 'hibiya', '約 30 分', ''],
+      'roppongi|shinjuku': ['都營大江戶線', 'oedo', '約 10 分', ''],
+      'hibiya|nippori': ['JR 山手線・京濱東北線（有樂町站）', 'yamanote', '約 15 分', ''],
+      'hibiya|tokyo': ['步行，或 JR 一站', 'walk', '約 10 分', ''],
+      'nippori|ueno': ['JR 山手線・京濱東北線', 'yamanote', '約 4 分', ''],
+      'nippori|oshiage': ['京成線（青砥轉車）', 'keisei', '約 25 分', '也可到上野轉銀座線、淺草再轉車'],
+      'oshiage|ueno': ['銀座線到淺草，轉都營淺草線', 'ginza', '約 20 分', ''],
+      'asakusa|ueno': ['東京Metro 銀座線', 'ginza', '約 5 分', ''],
+      'asakusa|oshiage': ['都營淺草線一站，或步行約 20 分', 'asakusa', '約 5 分', ''],
+      'asakusa|nippori': ['JR 到上野轉東京Metro 銀座線', 'ginza', '約 15 分', ''],
+      'minamifunabashi|tokyo': ['JR 京葉線', 'keiyo', '約 25 分', '東京站的京葉線月台很遠，轉乘預留 10–15 分'],
+      'minamifunabashi|nippori': ['JR 到東京站轉京葉線', 'keiyo', '約 45 分', '東京站的京葉線月台很遠，轉乘預留 10–15 分'],
+      'hibiya|minamifunabashi': ['JR 有樂町到東京站，轉京葉線', 'keiyo', '約 40 分', '東京站的京葉線月台很遠，轉乘預留 10–15 分'],
+      'ebisu|minamifunabashi': ['京葉線到東京站，轉 JR 山手線', 'keiyo', '約 55 分', ''],
+      'ebisu|nippori': ['JR 山手線', 'yamanote', '約 35 分', ''],
+      'ebisu|tokyo': ['JR 山手線', 'yamanote', '約 20 分', ''],
+      'korakuen|nippori': ['JR 到秋葉原轉總武線（各站停車）到水道橋', 'sobu', '約 20 分', ''],
+      'shinjuku|yomiuriland': ['京王線', 'keio', '約 35 分', '京王よみうりランド站轉 Sky Shuttle 空中纜車上山'],
+      'nippori|yomiuriland': ['JR 山手線到新宿，轉京王線', 'keio', '約 1 小時', '京王よみうりランド站轉 Sky Shuttle 空中纜車'],
+      'nippori|tachikawa': ['JR 山手線到新宿，轉中央線快速', 'chuo', '約 1 小時', ''],
+      'akihabara|nippori': ['JR 山手線・京濱東北線', 'yamanote', '約 9 分', ''],
+      'kanda|nippori': ['JR 京濱東北線・山手線', 'yamanote', '約 10 分', ''],
+      'ikebukuro|nippori': ['JR 山手線', 'yamanote', '約 12 分', ''],
+      'nippori|shibuya': ['JR 山手線', 'yamanote', '約 30 分', ''],
+      'nippori|shinagawa': ['JR 山手線・京濱東北線', 'yamanote', '約 22 分', ''],
+      'ginza|nippori': ['JR 到上野轉東京Metro 銀座線', 'ginza', '約 20 分', '']
+    };
+    function buildRoute(d) {
+      // 每個節點：{ key: 示意圖上的站, name: 顯示名稱, q: 給 Google 地圖查路線用的地點 }
+      const hotel = { key: 'nippori', name: '日暮里（飯店）', q: HOTEL_Q };
+      const nodes = [];
+      d.events.forEach(ev => {
+        const [loc, end] = evLoc(ev);
+        nodes.push({ key: loc, name: loc ? ST[loc][2] : ev.title, q: loc === 'nippori' ? HOTEL_Q : (ev.map || ev.title) });
+        if (end) nodes.push({ key: end, name: ST[end][2], q: ST_Q[end] });
+      });
+      if (d.day !== 1 && nodes.length && nodes[0].key !== 'nippori') nodes.unshift(hotel);
+      if (d.day !== 8 && nodes.length && nodes[nodes.length - 1].key !== 'nippori') nodes.push(hotel);
+      const same = (a, b) => a.key && b.key ? a.key === b.key : a.name === b.name;
+      const seq = nodes.filter((n, i) => i === 0 || !same(n, nodes[i - 1]));
+      const legs = [];
+      for (let i = 1; i < seq.length; i++) {
+        const a = seq[i - 1], b = seq[i];
+        const info = a.key && b.key ? LEG_INFO[[a.key, b.key].sort().join('|')] : null;
+        legs.push({ from: a.name, to: b.name, oq: a.key && a.key !== 'nippori' && info ? ST_Q[a.key] : a.q, dq: b.key && b.key !== 'nippori' && info ? ST_Q[b.key] : b.q,
+          line: info ? info[0] : '這段沒有預先整理，請按「即時路線」查怎麼搭', col: info ? info[1] : 'unknown', mins: info ? info[2] : '', note: info ? info[3] : '' });
+      }
+      return { stops: seq.filter(n => n.key).map(n => n.key), legs, unknown: seq.filter(n => !n.key).map(n => n.name) };
+    }
+    function routeMapSVG(day, stops) {
       const P = k => ST[k];
       const line = (keys, col, w, op) => `<polyline points="${keys.map(k => P(k)[0] + ',' + P(k)[1]).join(' ')}" fill="none" stroke="${col}" stroke-width="${w}" stroke-linejoin="round" stroke-linecap="round" opacity="${op}"/>`;
       const label = (x, y, text, anchor, size, weight) => `<text x="${x}" y="${y}" font-size="${size}" font-weight="${weight}" text-anchor="${anchor}" style="fill:rgb(var(--tk-ink));stroke:rgb(var(--tk-sand));stroke-width:3px;paint-order:stroke">${text}</text>`;
@@ -2490,13 +2550,13 @@
       b += line([...LOOP, LOOP[0]], L_COL.yamanote, 6, .85);
       for (const k of ['ikebukuro', 'ueno', 'tokyo', 'shinagawa', 'shibuya', 'shinjuku']) {
         const [x, y, n] = P(k);
-        b += `<circle cx="${x}" cy="${y}" r="4" stroke="#4E8A1E" stroke-width="2" style="fill:rgb(var(--tk-card))"/>` + label(x > 200 ? x + 8 : x - 8, y + 4, n, x > 200 ? 'start' : 'end', 10, 400);
+        b += `<circle cx="${x}" cy="${y}" r="4" stroke="#4E8A1E" stroke-width="2" style="fill:rgb(var(--tk-card))"/>` + (stops.includes(k) ? '' : label(x > 200 ? x + 8 : x - 8, y + 4, n, x > 200 ? 'start' : 'end', 10, 400));
       }
-      const pts = r.stops.map(P);
-      b += `<polyline points="${pts.map(q => q[0] + ',' + q[1]).join(' ')}" fill="none" stroke-width="3.5" stroke-dasharray="7 5" stroke-linejoin="round" stroke-linecap="round" class="route-dash" style="stroke:rgb(var(--tk-maple))"/>`;
+      const pts = stops.map(P);
+      if (pts.length > 1) b += `<polyline points="${pts.map(q => q[0] + ',' + q[1]).join(' ')}" fill="none" stroke-width="3.5" stroke-dasharray="7 5" stroke-linejoin="round" stroke-linecap="round" class="route-dash" style="stroke:rgb(var(--tk-maple))"/>`;
       const seen = new Set();
       let n = 0;
-      r.stops.forEach(k => {
+      stops.forEach(k => {
         if (k === 'nippori' || seen.has(k)) return;
         seen.add(k); n++;
         const [x, y, name] = P(k);
@@ -2511,32 +2571,32 @@
     function renderDayRoute() {
       const el = document.getElementById('dayRoute');
       const d = itinerary.find(x => x.day === currentDay);
-      const r = ROUTES[d.day];
-      if (!r) { el.innerHTML = ''; return; }
+      const r = buildRoute(d);
       const open = store.get('tk2026_route_open', true);
       el.innerHTML = `
         <details class="bg-white rounded-2xl border border-tk-line shadow-sm overflow-hidden fade-in" ${open ? 'open' : ''} ontoggle="store.set('tk2026_route_open', this.open)">
           <summary class="px-4 py-3 cursor-pointer flex items-center justify-between gap-2">
             <span class="font-bold text-sm text-tk-night">🗺️ 今日路線與交通</span>
-            <span class="text-[11px] text-tk-muted">${r.legs.length} 段移動・點這裡收合</span>
+            <span class="text-[11px] text-tk-muted">${r.legs.length ? r.legs.length + ' 段移動' : '不用搭車'}・點這裡收合</span>
           </summary>
           <div class="px-3 pb-4 grid md:grid-cols-2 gap-3 items-start">
             <div class="min-w-0">
-              ${routeMapSVG(d.day)}
-              <p class="text-[10px] text-tk-muted mt-1 px-1">示意圖，非實際比例。綠色環線是 JR 山手線，紅色虛線是今天的移動順序。</p>
+              ${routeMapSVG(d.day, r.stops)}
+              <p class="text-[10px] text-tk-muted mt-1 px-1">示意圖，非實際比例；會依你修改後的行程自動更新。綠色環線是 JR 山手線，紅色虛線是今天的移動順序。</p>
+              ${r.unknown.length ? `<p class="text-[11px] text-tk-ink mt-1 px-1">📍 圖上沒有標示的地點：${r.unknown.map(esc).join('、')}（右邊的交通卡仍可查路線）</p>` : ''}
             </div>
-            <ol class="space-y-2 min-w-0">${r.legs.map(([from, to, lineName, col, mins, note]) => `
+            <ol class="space-y-2 min-w-0">${r.legs.length ? r.legs.map(g => `
               <li class="flex items-stretch rounded-xl border border-tk-line overflow-hidden bg-tk-bg">
-                <span class="w-1.5 shrink-0" style="background:${L_COL[col]}"></span>
+                <span class="w-1.5 shrink-0" style="background:${L_COL[g.col]}"></span>
                 <div class="flex-1 min-w-0 p-2.5">
                   <div class="flex items-center justify-between gap-2">
-                    <p class="text-sm font-bold text-tk-ink truncate">${esc(from.replace(/駅$/, ''))} → ${esc(to.replace(/駅$/, ''))}</p>
-                    <span class="shrink-0 text-[11px] font-bold text-tk-night">${esc(mins)}</span>
+                    <p class="text-sm font-bold text-tk-ink truncate">${esc(g.from)} → ${esc(g.to)}</p>
+                    <span class="shrink-0 text-[11px] font-bold text-tk-night">${esc(g.mins)}</span>
                   </div>
-                  <p class="text-[11px] text-tk-muted mt-0.5"><span class="inline-block w-2 h-2 rounded-full mr-1 align-middle" style="background:${L_COL[col]}"></span>${esc(lineName)}${note ? `・${esc(note)}` : ''}</p>
+                  <p class="text-[11px] text-tk-muted mt-0.5"><span class="inline-block w-2 h-2 rounded-full mr-1 align-middle" style="background:${L_COL[g.col]}"></span>${esc(g.line)}${g.note ? `・${esc(g.note)}` : ''}</p>
                 </div>
-                <a href="https://www.google.com/maps/dir/?api=1&origin=${encodeURIComponent(from)}&destination=${encodeURIComponent(to)}&travelmode=transit" target="_blank" rel="noopener" class="shrink-0 w-14 flex items-center justify-center text-center text-[11px] font-bold text-tk-night border-l border-tk-line hover:bg-tk-sand">即時<br>路線</a>
-              </li>`).join('')}
+                <a href="https://www.google.com/maps/dir/?api=1&origin=${encodeURIComponent(g.oq)}&destination=${encodeURIComponent(g.dq)}&travelmode=transit" target="_blank" rel="noopener" class="shrink-0 w-14 flex items-center justify-center text-center text-[11px] font-bold text-tk-night border-l border-tk-line hover:bg-tk-sand">即時<br>路線</a>
+              </li>`).join('') : '<li class="text-xs text-tk-muted p-3 rounded-xl border border-tk-line bg-tk-bg">今天的行程都在日暮里附近，走路就到。</li>'}
             </ol>
           </div>
         </details>`;
