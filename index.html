@@ -7,6 +7,11 @@
   <title>東京日暮里 7 天自由行</title>
   <meta name="robots" content="noindex, nofollow" />
   <script src="https://cdn.tailwindcss.com/3.4.17"></script>
+  <link rel="manifest" href="manifest.webmanifest">
+  <link rel="apple-touch-icon" href="icon-180.png">
+  <meta name="apple-mobile-web-app-capable" content="yes">
+  <meta name="mobile-web-app-capable" content="yes">
+  <meta name="apple-mobile-web-app-title" content="東京行程">
   <link rel="preconnect" href="https://fonts.googleapis.com">
   <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
   <link href="https://fonts.googleapis.com/css2?family=Noto+Sans+JP:wght@500;700&family=Noto+Sans+TC:wght@400;500;700;900&family=Noto+Serif+TC:wght@600;700;900&display=swap" rel="stylesheet">
@@ -211,7 +216,7 @@
       <div id="dayFood"></div>
       <ol id="timelineContainer" class="relative space-y-3"></ol>
       <div class="flex gap-2">
-        <button onclick="openModal('addEventModal')" class="flex-1 py-3 rounded-xl border-2 border-dashed border-tk-night/25 text-tk-night font-bold text-sm hover:bg-tk-night/5 transition">
+        <button onclick="openAddEvent()" class="flex-1 py-3 rounded-xl border-2 border-dashed border-tk-night/25 text-tk-night font-bold text-sm hover:bg-tk-night/5 transition">
           ＋ 新增自訂行程
         </button>
         <button onclick="resetItinerary()" class="px-4 py-3 rounded-xl border border-tk-line bg-white text-tk-muted text-xs font-bold hover:text-tk-maple transition" title="恢復成原始行程">重設</button>
@@ -225,6 +230,7 @@
         <h3 class="font-serif font-bold text-lg text-tk-night">💾 資料保存</h3>
         <div id="saveStatus"></div>
         <div id="shareStatus"></div>
+        <div id="installBox"></div>
         <div class="flex flex-wrap gap-2">
           <button onclick="exportBackup()" class="chip-filter px-3 py-1.5 rounded-full text-xs font-bold">📋 複製備份代碼</button>
           <button onclick="toggleBackupBox()" class="chip-filter px-3 py-1.5 rounded-full text-xs font-bold">📥 貼上代碼還原</button>
@@ -309,6 +315,7 @@
         <button onclick="jumpTo('sec-flight')" class="chip-filter shrink-0 px-3 py-1.5 rounded-full text-xs font-bold">✈️ 航班</button>
         <button onclick="jumpTo('sec-fabric')" class="chip-filter shrink-0 px-3 py-1.5 rounded-full text-xs font-bold">🧵 布料清單</button>
         <button onclick="jumpTo('sec-calc')" class="chip-filter shrink-0 px-3 py-1.5 rounded-full text-xs font-bold">📐 用量計算</button>
+        <button onclick="jumpTo('sec-vault')" class="chip-filter shrink-0 px-3 py-1.5 rounded-full text-xs font-bold">🎫 憑證</button>
         <button onclick="jumpTo('sec-prep')" class="chip-filter shrink-0 px-3 py-1.5 rounded-full text-xs font-bold">✅ 出發前</button>
         <button onclick="jumpTo('sec-lights')" class="chip-filter shrink-0 px-3 py-1.5 rounded-full text-xs font-bold">✨ 燈飾</button>
         <button onclick="jumpTo('sec-tax')" class="chip-filter shrink-0 px-3 py-1.5 rounded-full text-xs font-bold">🧾 免稅新制</button>
@@ -455,6 +462,22 @@
       </div>
 
       <div class="space-y-4">
+        <div id="sec-vault" class="bg-white rounded-2xl border border-tk-line shadow-sm p-4 space-y-3">
+          <div class="flex items-center justify-between gap-2">
+            <h2 class="font-serif font-bold text-lg text-tk-night">🎫 憑證倉</h2>
+            <span class="text-[11px] font-bold px-2 py-1 rounded-full bg-tk-goldSoft text-tk-ink">只存在這支手機</span>
+          </div>
+          <p class="text-xs text-tk-muted leading-relaxed">機票訂位代號、訂房編號、Skyliner 車票、門票都放這裡，一鍵複製，也可以存截圖。<b class="text-tk-maple">這裡的內容不會同步給旅伴</b>，每個人各存各的。</p>
+          <ul id="vaultList" class="divide-y divide-tk-line"></ul>
+          <form onsubmit="addVault(event)" class="grid grid-cols-2 gap-2 pt-3 border-t border-tk-line">
+            <label for="vType" class="text-xs text-tk-muted">類型<select id="vType" class="mt-1 w-full px-3 py-2 rounded-xl bg-tk-bg border border-tk-line text-sm text-tk-ink focus:outline-none focus:border-tk-night"></select></label>
+            <label for="vName" class="text-xs text-tk-muted">名稱<input id="vName" required maxlength="60" placeholder="例如：JX802 去程" class="mt-1 w-full px-3 py-2 rounded-xl bg-tk-bg border border-tk-line text-sm text-tk-ink focus:outline-none focus:border-tk-night" /></label>
+            <label for="vCode" class="col-span-2 text-xs text-tk-muted">訂位代號／編號（可不填）<input id="vCode" maxlength="80" placeholder="例如：ABC123" autocomplete="off" class="mt-1 w-full px-3 py-2 rounded-xl bg-tk-bg border border-tk-line text-sm text-tk-ink focus:outline-none focus:border-tk-night" /></label>
+            <label for="vNote" class="col-span-2 text-xs text-tk-muted">備註（可不填）<input id="vNote" maxlength="200" placeholder="例如：兩人同一筆訂位、行李 23kg" class="mt-1 w-full px-3 py-2 rounded-xl bg-tk-bg border border-tk-line text-sm text-tk-ink focus:outline-none focus:border-tk-night" /></label>
+            <button type="submit" class="col-span-2 py-2.5 rounded-xl bg-tk-night text-white text-sm font-bold">存進憑證倉</button>
+          </form>
+        </div>
+
         <div id="sec-prep" class="bg-white rounded-2xl border border-tk-line shadow-sm p-4 space-y-3">
           <div class="flex items-center justify-between">
             <h2 class="font-serif font-bold text-lg text-tk-night">✅ 出發前確認</h2>
@@ -588,6 +611,14 @@
               <p id="totalExpenseTwd" class="text-[11px] text-tk-muted">≈ NT$0</p>
             </div>
           </div>
+          <div class="rounded-xl bg-tk-bg border border-tk-line p-2.5 space-y-2">
+            <p class="text-xs font-bold text-tk-night">👥 分帳成員</p>
+            <div id="memberChips" class="flex flex-wrap gap-1.5"></div>
+            <form onsubmit="addMember(event)" class="flex gap-2">
+              <input id="memberName" type="text" maxlength="12" placeholder="輸入名字，例如：小美" class="flex-1 min-w-0 px-3 py-1.5 rounded-lg bg-white border border-tk-line text-xs text-tk-ink" />
+              <button type="submit" class="px-3 py-1.5 rounded-lg bg-tk-night text-white text-xs font-bold">加入</button>
+            </form>
+          </div>
           <form onsubmit="addExpense(event)" class="space-y-2">
             <div class="flex gap-2">
               <select id="expCat" class="px-2 py-2 rounded-xl bg-tk-bg border border-tk-line text-xs"></select>
@@ -597,8 +628,14 @@
               <input id="expAmount" type="number" placeholder="金額（日圓）" required min="0" class="flex-1 min-w-0 px-3 py-2 rounded-xl bg-tk-bg border border-tk-line text-xs" />
               <button type="submit" class="px-4 py-2 rounded-xl bg-tk-maple text-white font-bold text-xs">記一筆</button>
             </div>
+            <div class="flex flex-wrap items-center gap-x-3 gap-y-2 text-xs text-tk-ink">
+              <label for="expPayer" class="flex items-center gap-1.5">誰付的<select id="expPayer" class="px-2 py-1.5 rounded-lg bg-tk-bg border border-tk-line text-xs text-tk-ink"></select></label>
+              <label for="expSplitMode" class="flex items-center gap-1.5">分攤<select id="expSplitMode" onchange="renderSplitPick()" class="px-2 py-1.5 rounded-lg bg-tk-bg border border-tk-line text-xs text-tk-ink"><option value="all">全員均分</option><option value="pick">指定成員</option></select></label>
+            </div>
+            <div id="expSplitPick" class="flex flex-wrap gap-x-3 gap-y-1.5 text-xs text-tk-ink" hidden></div>
           </form>
           <div id="expenseByCat" class="flex flex-wrap gap-1.5"></div>
+          <div id="settleBox"></div>
           <ul id="expenseList" class="max-h-64 overflow-y-auto text-xs divide-y divide-tk-line/70"></ul>
         </div>
       </div>
@@ -670,6 +707,11 @@
     </div>
   </div>
 
+  <!-- ==================== 放大看截圖 ==================== -->
+  <div id="photoModal" class="hidden fixed inset-0 z-50 bg-black/90 flex items-center justify-center p-3" onclick="closeModal('photoModal')">
+    <img id="photoModalImg" alt="憑證截圖" class="max-w-full max-h-full rounded-lg" />
+  </div>
+
   <!-- ==================== 美食加入哪一天 ==================== -->
   <div id="addFoodModal" class="hidden fixed inset-0 z-50 bg-black/50 flex items-end sm:items-center justify-center p-4" onclick="closeModal('addFoodModal')">
     <div class="bg-white rounded-2xl max-w-md w-full p-5 space-y-3" onclick="event.stopPropagation()">
@@ -698,16 +740,20 @@
   <!-- ==================== 新增自訂行程 ==================== -->
   <div id="addEventModal" class="hidden fixed inset-0 z-50 bg-black/50 flex items-center justify-center p-4" onclick="closeModal('addEventModal')">
     <div class="bg-white rounded-2xl max-w-md w-full p-5 space-y-3" onclick="event.stopPropagation()">
-      <h3 class="font-serif text-lg font-bold text-tk-night">＋ 新增行程（<span id="addEventDayLabel"></span>）</h3>
+      <h3 class="font-serif text-lg font-bold text-tk-night"><span id="evModalTitle">＋ 新增行程</span>（<span id="addEventDayLabel"></span>）</h3>
       <div class="grid grid-cols-2 gap-2">
         <div>
-          <label class="text-xs text-tk-muted">時間</label>
-          <input id="newEvTime" type="time" value="15:00" class="w-full px-3 py-2 rounded-xl bg-tk-bg border border-tk-line text-sm" />
+          <label for="newEvTime" class="text-xs text-tk-muted">開始時間</label>
+          <input id="newEvTime" type="time" value="15:00" class="w-full px-3 py-2 rounded-xl bg-tk-bg border border-tk-line text-sm text-tk-ink" />
         </div>
         <div>
-          <label class="text-xs text-tk-muted">類型</label>
-          <select id="newEvType" class="w-full px-3 py-2 rounded-xl bg-tk-bg border border-tk-line text-sm"></select>
+          <label for="newEvEnd" class="text-xs text-tk-muted">結束時間（可不填）</label>
+          <input id="newEvEnd" type="time" class="w-full px-3 py-2 rounded-xl bg-tk-bg border border-tk-line text-sm text-tk-ink" />
         </div>
+      </div>
+      <div>
+        <label for="newEvType" class="text-xs text-tk-muted">類型</label>
+        <select id="newEvType" class="w-full px-3 py-2 rounded-xl bg-tk-bg border border-tk-line text-sm text-tk-ink"></select>
       </div>
       <div>
         <label class="text-xs text-tk-muted">地點名稱</label>
@@ -719,7 +765,7 @@
       </div>
       <div class="flex justify-end gap-2 pt-2">
         <button onclick="closeModal('addEventModal')" class="px-4 py-2 rounded-xl text-xs font-bold text-tk-muted">取消</button>
-        <button onclick="addCustomEvent()" class="px-4 py-2 rounded-xl bg-tk-night text-white text-xs font-bold">加入行程</button>
+        <button id="evModalSave" onclick="addCustomEvent()" class="px-4 py-2 rounded-xl bg-tk-night text-white text-xs font-bold">加入行程</button>
       </div>
     </div>
   </div>
@@ -1986,7 +2032,7 @@
     let foodFav = store.get(KEY.fav, {});
 
     // ---- 自己加的店與伴手禮（會同步給旅伴）；所有欄位都先清理再使用 ----
-    const KEY_FOODX = 'tk2026_food_custom', KEY_GIFTX = 'tk2026_gift_custom';
+    const KEY_FOODX = 'tk2026_food_custom', KEY_GIFTX = 'tk2026_gift_custom', KEY_MEMBERS = 'tk2026_members', KEY_VAULT = 'tk2026_vault';
     const str = (v, n) => String(v ?? '').slice(0, n);
     const ID_RE = /^[A-Za-z0-9_-]{1,60}$/, TIME_RE = /^\d{2}:\d{2}$/, DATE_RE = /^\d{2}\/\d{2}$/;
     const CAFE_CATS = ['☕ 咖啡', '🍡 和菓子甘味', '🍰 甜點'];
@@ -2090,7 +2136,8 @@
     }
     function cleanShared(name, val) {
       if (name.startsWith('itin')) return cleanItinerary(val);
-      if (name === 'exp') return (Array.isArray(val) ? val : []).slice(0, 500).map(x => ({ name: str(x && x.name, 80), amount: Number.isFinite(Number(x && x.amount)) ? Number(x.amount) : 0, cat: str(x && x.cat, 20), date: str(x && x.date, 10) }));
+      if (name === 'exp') return (Array.isArray(val) ? val : []).slice(0, 500).map(x => { const o = { name: str(x && x.name, 80), amount: Number.isFinite(Number(x && x.amount)) ? Number(x.amount) : 0, cat: str(x && x.cat, 20), date: str(x && x.date, 10) }; if (x && x.payer) { o.payer = str(x.payer, 12); if (Array.isArray(x.split) && x.split.length) o.split = x.split.slice(0, 12).map(m => str(m, 12)); } return o; });
+      if (name === 'members') return cleanMembers(val);
       if (name === 'fabric') return (Array.isArray(val) ? val : []).slice(0, 200).filter(i => i && ID_RE.test(i.id)).map(i => ({ id: i.id, day: DATE_RE.test(i.day) ? i.day : '12/03', name: str(i.name, 60), note: str(i.note, 80), done: !!i.done }));
       if (name === 'gift') { const o = {}; Object.keys(val && typeof val === 'object' ? val : {}).slice(0, 300).forEach(k => { const n = Math.floor(Number(val[k])); if (ID_RE.test(k) && n > 0) o[k] = Math.min(n, 99); }); return o; }
       if (name === 'foodx') return cleanFoodRaw(val);
@@ -2206,7 +2253,7 @@
         const tags = ev.tags ? `<div class="flex flex-wrap gap-1.5 mt-2">${ev.tags.map(g => `<span class="text-[11px] px-2 py-0.5 rounded-full bg-pink-50 text-pink-800 border border-pink-200">🛒 ${esc(g)}</span>`).join('')}</div>` : '';
         const alt = ev.alt ? `<div class="mt-2.5 p-2.5 rounded-xl bg-amber-50 border border-amber-200 text-xs text-amber-900 flex items-start gap-2"><span>🔀</span><span class="flex-1">${esc(ev.alt)}</span>${ev.altMap ? `<a href="${mapUrl(ev.altMap)}" target="_blank" rel="noopener" class="shrink-0 font-bold underline underline-offset-2">備案導航</a>` : ''}</div>` : '';
         const links = (ev.links || []).map(l => `<a href="${esc(l.url)}" target="_blank" rel="noopener" class="px-2.5 py-1.5 rounded-lg bg-tk-bg border border-tk-line text-[11px] font-bold text-tk-ink hover:border-tk-night transition">🔗 ${esc(l.label)}</a>`).join('');
-        const del = `<button onclick="deleteEvent('${ev.id}')" class="px-2.5 py-1.5 rounded-lg text-[11px] font-bold text-tk-muted hover:text-tk-maple">${ev.custom ? '刪除' : '移除'}</button>`;
+        const del = `<button onclick="openEditEvent('${ev.id}')" class="px-2.5 py-1.5 rounded-lg text-[11px] font-bold text-tk-muted hover:text-tk-night">編輯</button><button onclick="deleteEvent('${ev.id}')" class="px-2.5 py-1.5 rounded-lg text-[11px] font-bold text-tk-muted hover:text-tk-maple">${ev.custom ? '刪除' : '移除'}</button>`;
         return `
           <li class="relative pl-[5rem] md:pl-[6rem]">
             <div class="absolute left-0 top-4 w-[3.3rem] md:w-[4.3rem] text-right">${timeHtml}</div>
@@ -3036,7 +3083,7 @@
     /* =========================================================
        5s. 資料保存：瀏覽器、Claude 帳號雲端、備份代碼
        ========================================================= */
-    const SYNC_KEYS = () => [KEY.itin, KEY.exp, KEY.prep, KEY.fabric, KEY.fav, KEY.gift, KEY.rate, 'tk2026_journal', 'tk2026_rain', KEY_FOODX, KEY_GIFTX];
+    const SYNC_KEYS = () => [KEY.itin, KEY.exp, KEY.prep, KEY.fabric, KEY.fav, KEY.gift, KEY.rate, 'tk2026_journal', 'tk2026_rain', KEY_FOODX, KEY_GIFTX, KEY_MEMBERS, KEY_VAULT];
     const LOCAL_T = 'tk2026_local_t';
     const bootT = store.get(LOCAL_T, 0);
     const cloudSync = { ref: null, state: 'off', timer: 0, busy: false, again: false };
@@ -3064,6 +3111,8 @@
       customFood = cleanFoodRaw(store.get(KEY_FOODX, []));
       customGifts = cleanGiftRaw(store.get(KEY_GIFTX, []));
       syncCustomLists();
+      members = cleanMembers(store.get(KEY_MEMBERS, []));
+      vault = cleanVault(store.get(KEY_VAULT, []));
       journal = store.get('tk2026_journal', {});
       rainDays = store.get('tk2026_rain', {});
       const r = store.get(KEY.rate, null);
@@ -3074,7 +3123,7 @@
       renderDaySelector(); renderDayContent();
       renderFoodFilters(); renderFood();
       renderGiftCart(); renderGift();
-      renderPrep(); renderFabric(); renderLightsTable(); renderExpenses();
+      renderPrep(); renderFabric(); renderLightsTable(); renderExpenses(); renderVault();
     }
     function applyState(keys) {
       SYNC_KEYS().forEach(k => { if (typeof keys[k] === 'string') { try { store.put(k, JSON.parse(keys[k])); } catch (e) { } } });
@@ -3198,7 +3247,7 @@
        ========================================================= */
     const SHARE_DB = 'https://tokyo-trip-9fe07-default-rtdb.asia-southeast1.firebasedatabase.app';   // 例：https://xxxx-default-rtdb.asia-southeast1.firebasedatabase.app（留空 = 不同步）
     const SHARE_TRIP = 'nippori-J6tqrNHCOHgD5p2m';
-    const SHARE_MAP = () => ({ ['itin_' + KEY.itin.split('_').pop()]: KEY.itin, exp: KEY.exp, fabric: KEY.fabric, gift: KEY.gift, foodx: KEY_FOODX, giftx: KEY_GIFTX });
+    const SHARE_MAP = () => ({ ['itin_' + KEY.itin.split('_').pop()]: KEY.itin, exp: KEY.exp, fabric: KEY.fabric, gift: KEY.gift, foodx: KEY_FOODX, giftx: KEY_GIFTX, members: KEY_MEMBERS });
     const SHARE_T = 'tk2026_share_t';
     const share = { state: SHARE_DB ? 'connecting' : 'off', es: null, timers: {}, pending: false, lastToast: 0, id: store.get('tk2026_client', null) };
     if (!share.id) { share.id = 'c' + Math.random().toString(36).slice(2, 10); store.put('tk2026_client', share.id); }
@@ -3296,7 +3345,7 @@
       const [icon, title, tone] = share.state === 'live' ? ['🔄', '已和旅伴即時同步', 'bg-teal-50 border-teal-200 text-teal-800']
         : share.state === 'retry' ? ['📡', '同步連線中斷，恢復網路後會自動補上', 'bg-amber-50 border-amber-200 text-amber-900']
         : ['⏳', '正在連線同步…', 'bg-tk-bg border-tk-line text-tk-ink'];
-      el.innerHTML = `<div class="rounded-xl border p-3 ${tone}"><p class="text-sm font-bold">${icon} ${title}</p><p class="text-xs mt-1 leading-relaxed">所有打開這個網址的人共用同一份：行程（含自訂行程與完成打勾、集章）、記帳、布料清單、伴手禮清單。出發前確認、想去的店、旅行手帳、雨天模式仍是各自的。按「重設」也會重設所有人的行程。</p></div>`;
+      el.innerHTML = `<div class="rounded-xl border p-3 ${tone}"><p class="text-sm font-bold">${icon} ${title}</p><p class="text-xs mt-1 leading-relaxed">所有打開這個網址的人共用同一份：行程（含自訂行程與完成打勾、集章）、記帳與分帳成員、布料清單、伴手禮清單、自己加的店。出發前確認、想去的店、旅行手帳、憑證倉、雨天模式仍是各自的。按「重設」也會重設所有人的行程。</p></div>`;
     }
 
     /* =========================================================
@@ -3379,6 +3428,122 @@
         if (el && d) el.innerHTML = weatherHtml(d);
         renderToday();
       } catch (e) { /* 沒網路或被擋：維持歷年平均 */ }
+    }
+
+    /* =========================================================
+       5y. 分帳成員、憑證倉（只存本機）、離線與加到主畫面
+       ========================================================= */
+    function cleanMembers(arr) {
+      const out = [];
+      (Array.isArray(arr) ? arr : []).forEach(m => { const n = str(m, 12).trim(); if (n && !out.includes(n) && out.length < 12) out.push(n); });
+      return out;
+    }
+    let members = cleanMembers(store.get(KEY_MEMBERS, []));
+
+    // ---- 憑證倉：不進同步，只存在這台裝置 ----
+    const VAULT_TYPES = ['✈️ 機票', '🏨 住宿', '🚄 交通票', '🎫 門票', '📄 其他'];
+    function cleanVault(arr) {
+      return (Array.isArray(arr) ? arr : []).slice(0, 60).filter(v => v && ID_RE.test(v.id) && str(v.name, 60).trim())
+        .map(v => ({ id: v.id, type: VAULT_TYPES.includes(v.type) ? v.type : '📄 其他', name: str(v.name, 60).trim(), code: str(v.code, 80).trim(), note: str(v.note, 200) }));
+    }
+    let vault = cleanVault(store.get(KEY_VAULT, []));
+    const vaultUrls = [];
+    let vaultArm = { id: null, t: 0 };
+    async function renderVault() {
+      const el = document.getElementById('vaultList');
+      if (!el) return;
+      let photos = [];
+      try { photos = await photoAll(); } catch (e) { }
+      while (vaultUrls.length) URL.revokeObjectURL(vaultUrls.pop());
+      el.innerHTML = vault.length ? vault.map((v, i) => {
+        const ps = photos.filter(x => x.day === 'v:' + v.id).sort((a, b) => a.t - b.t);
+        return `
+        <li class="py-3 space-y-2">
+          <div class="flex items-start justify-between gap-2">
+            <div class="min-w-0"><p class="text-[11px] text-tk-muted">${esc(v.type)}</p><p class="font-bold text-sm text-tk-ink">${esc(v.name)}</p></div>
+            <button onclick="deleteVault('${v.id}')" class="shrink-0 text-[11px] font-bold text-tk-muted hover:text-tk-maple">刪除</button>
+          </div>
+          ${v.code ? `<div class="flex items-center gap-2"><p id="vcode${i}" class="flex-1 min-w-0 font-black text-lg text-tk-night select-all break-all" style="font-variant-numeric:tabular-nums">${esc(v.code)}</p><button onclick="copyVault(${i})" class="shrink-0 chip-filter px-3 py-1.5 rounded-full text-xs font-bold">複製</button></div>` : ''}
+          ${v.note ? `<p class="text-xs text-tk-muted leading-relaxed">${esc(v.note)}</p>` : ''}
+          <div class="flex flex-wrap gap-2">
+            ${ps.map(x => `<div class="relative w-16 h-16 rounded-lg overflow-hidden bg-tk-sand"><img src="${journalUrl(x.blob, vaultUrls)}" alt="憑證截圖" class="w-full h-full object-cover cursor-pointer" onclick="openPhoto(this.src)"><button onclick="delVaultPhoto('${x.id}')" aria-label="刪除截圖" class="absolute top-0.5 right-0.5 w-5 h-5 rounded-full bg-black/55 text-white text-[10px]">✕</button></div>`).join('')}
+            <label class="w-16 h-16 rounded-lg border-2 border-dashed border-tk-line flex flex-col items-center justify-center text-tk-muted text-[10px] font-bold cursor-pointer hover:border-tk-night"><span class="text-lg leading-none">＋</span>截圖<input type="file" accept="image/*" multiple class="hidden" onchange="addVaultPhotos('${v.id}', Array.from(this.files)); this.value = ''"></label>
+          </div>
+        </li>`;
+      }).join('') : '<li class="py-4 text-center text-xs text-tk-muted">還沒有憑證。可以先存：去回程機票的訂位代號、APA 訂房編號、Skyliner 車票。</li>';
+    }
+    function addVault(e) {
+      e.preventDefault();
+      const v = id => document.getElementById(id).value;
+      const item = cleanVault([{ id: 'v' + Date.now().toString(36) + Math.random().toString(36).slice(2, 6), type: v('vType'), name: v('vName'), code: v('vCode'), note: v('vNote') }])[0];
+      if (!item) return;
+      vault.push(item); store.set(KEY_VAULT, vault);
+      ['vName', 'vCode', 'vNote'].forEach(id => { document.getElementById(id).value = ''; });
+      renderVault();
+      toast(`已存「${item.name}」（只存在這支手機）`);
+    }
+    async function deleteVault(id) {
+      const item = vault.find(x => x.id === id);
+      if (!item) return;
+      if (!(vaultArm.id === id && Date.now() - vaultArm.t < 4000)) { vaultArm = { id, t: Date.now() }; toast('再按一次「刪除」才會移除這筆憑證和它的截圖'); return; }
+      vaultArm = { id: null, t: 0 };
+      vault = vault.filter(x => x.id !== id); store.set(KEY_VAULT, vault);
+      try { for (const ph of (await photoAll()).filter(x => x.day === 'v:' + id)) await photoDel(ph.id); } catch (e) { }
+      renderVault();
+      toast('已刪除');
+    }
+    function copyVault(i) {
+      const text = vault[i] ? vault[i].code : '';
+      const fallback = () => {
+        try { const r = document.createRange(); r.selectNodeContents(document.getElementById('vcode' + i)); const sel = window.getSelection(); sel.removeAllRanges(); sel.addRange(r); } catch (e) { }
+        toast('已選取，請用手機的「複製」');
+      };
+      try { navigator.clipboard.writeText(text).then(() => toast('已複製：' + text), fallback); } catch (e) { fallback(); }
+    }
+    async function addVaultPhotos(id, files) {
+      let n = 0;
+      for (const f of files) {
+        try { await photoPut({ id: 'p' + Date.now() + Math.random().toString(36).slice(2, 7), day: 'v:' + id, blob: await shrinkImage(f, 1800), t: Date.now() }); n++; } catch (e) { }
+      }
+      toast(n ? `已存 ${n} 張截圖（只存在這支手機）` : '截圖沒存進去：這個瀏覽器可能不允許本機儲存');
+      renderVault();
+    }
+    async function delVaultPhoto(pid) { try { await photoDel(pid); } catch (e) { } renderVault(); }
+    function openPhoto(src) { document.getElementById('photoModalImg').src = src; openModal('photoModal'); }
+
+    // ---- 離線可用、加到主畫面 ----
+    const pwa = { supported: false, ready: store.get('tk2026_offline_ready', false), prompt: null };
+    function renderInstallBox() {
+      const el = document.getElementById('installBox');
+      if (!el) return;
+      if (!pwa.supported) { el.innerHTML = ''; return; }
+      el.innerHTML = `
+        <div class="rounded-xl border border-tk-line bg-tk-bg p-3 space-y-2">
+          <p class="text-sm font-bold text-tk-night">${pwa.ready ? '📴 離線可用：行程和照片已存在這支手機' : '⏳ 正在準備離線資料…（第一次需要連網幾秒鐘）'}</p>
+          <p class="text-xs text-tk-ink leading-relaxed">沒有網路時也能打開這個網址，看行程、字卡、飯店地址，也能記帳和打勾；恢復連線後會自動同步給旅伴。</p>
+          <p class="text-xs text-tk-ink leading-relaxed">📲 <b>加到主畫面</b>：iPhone 用 Safari 按下方的「分享」→「加入主畫面」；Android 用 Chrome 按右上角選單 →「安裝應用程式」或「加到主畫面」。</p>
+          ${pwa.prompt ? '<button onclick="installApp()" class="px-4 py-2 rounded-xl bg-tk-night text-white text-xs font-bold">📲 安裝到這支手機</button>' : ''}
+        </div>`;
+    }
+    async function installApp() {
+      if (!pwa.prompt) return;
+      try { pwa.prompt.prompt(); await pwa.prompt.userChoice; } catch (e) { }
+      pwa.prompt = null; renderInstallBox();
+    }
+    function pwaInit() {
+      if (!('serviceWorker' in navigator) || !/^https?:$/.test(location.protocol)) return;
+      addEventListener('beforeinstallprompt', e => { e.preventDefault(); pwa.prompt = e; renderInstallBox(); });
+      addEventListener('offline', () => toast('📴 目前離線，行程照常可用；恢復連線後會自動同步'));
+      addEventListener('online', () => toast('📶 已恢復連線'));
+      navigator.serviceWorker.addEventListener('message', e => {
+        if (e.data && e.data.type === 'warmed') { pwa.ready = true; store.put('tk2026_offline_ready', true); renderInstallBox(); }
+      });
+      navigator.serviceWorker.register('sw.js').then(() => navigator.serviceWorker.ready).then(reg => {
+        pwa.supported = true; renderInstallBox();
+        const urls = Object.values(PHOTOS).map(ph => ph.src).filter(u => !/^https?:/.test(u));
+        document.querySelectorAll('script[src], link[rel="stylesheet"][href]').forEach(n => urls.push(n.src || n.href));
+        if (reg.active) reg.active.postMessage({ type: 'warm', urls });
+      }).catch(() => { });
     }
 
     /* =========================================================
@@ -3642,19 +3807,42 @@
       saveItinerary(); renderDaySelector(); renderDayContent();
       toast(`已還原「${ev.title}」`);
     }
+    let editingEvId = null;
+    function fillEventModal(ev) {
+      const set = (id, v) => { document.getElementById(id).value = v; };
+      set('newEvTime', ev ? ev.time : '15:00'); set('newEvEnd', ev && ev.end ? ev.end : '');
+      set('newEvTitle', ev ? ev.title : ''); set('newEvNote', ev ? (ev.note || '') : '');
+      if (ev && TYPES[ev.type]) set('newEvType', ev.type);
+      document.getElementById('evModalTitle').textContent = ev ? '✏️ 編輯行程' : '＋ 新增行程';
+      document.getElementById('evModalSave').textContent = ev ? '儲存' : '加入行程';
+    }
+    function openAddEvent() { editingEvId = null; fillEventModal(null); openModal('addEventModal'); }
+    function openEditEvent(id) {
+      const ev = findEv(id);
+      if (!ev) return;
+      editingEvId = id; fillEventModal(ev); openModal('addEventModal');
+    }
     function addCustomEvent() {
-      const title = document.getElementById('newEvTitle').value.trim();
+      const val = id => document.getElementById(id).value;
+      const title = val('newEvTitle').trim();
       if (!title) { document.getElementById('newEvTitle').focus(); return; }
+      const time = val('newEvTime') || '15:00', end = val('newEvEnd'), note = val('newEvNote').trim();
       const d = itinerary.find(x => x.day === currentDay);
-      d.events.push({
-        id: 'custom-' + Date.now(), custom: true,
-        time: document.getElementById('newEvTime').value || '15:00',
-        type: document.getElementById('newEvType').value,
-        title, note: document.getElementById('newEvNote').value.trim(), map: title + ' 東京'
-      });
-      d.events.sort((a, b) => a.time.localeCompare(b.time));
+      const ev = editingEvId ? d.events.find(e => e.id === editingEvId) : null;
+      if (ev) {
+        if (ev.time !== time) delete ev.timeLabel;   // 改了時間，就不再顯示「抵達後」這類文字標籤
+        if (ev.title !== title) ev.map = title + ' 東京';
+        ev.time = time; ev.type = val('newEvType'); ev.title = title; ev.note = note;
+        if (end && end > time) ev.end = end; else delete ev.end;
+      } else {
+        const item = { id: 'custom-' + Date.now(), custom: true, time, type: val('newEvType'), title, note, map: title + ' 東京' };
+        if (end && end > time) item.end = end;
+        d.events.push(item);
+      }
+      d.events.sort((x, y) => x.time.localeCompare(y.time));
       saveItinerary(); renderDaySelector(); renderDayContent(); closeModal('addEventModal');
-      document.getElementById('newEvTitle').value = ''; document.getElementById('newEvNote').value = '';
+      toast(ev ? `已更新「${title}」` : `已加入「${title}」`);
+      editingEvId = null;
     }
     let resetArmedAt = 0;
     function resetItinerary() {
@@ -3811,22 +3999,116 @@
       if (src === 'jpy') { const v = parseFloat(j.value); t.value = isNaN(v) ? '' : Math.round(v * rate); }
       else { const v = parseFloat(t.value); j.value = isNaN(v) ? '' : Math.round(v / rate); }
     }
+    function renderMembers() {
+      document.getElementById('memberChips').innerHTML = members.length
+        ? members.map((m, i) => `<span class="inline-flex items-center gap-1 text-xs font-bold px-2.5 py-1 rounded-full bg-white border border-tk-line text-tk-ink">${esc(m)}<button onclick="removeMember(${i})" aria-label="移除成員" class="text-tk-muted hover:text-tk-maple">✕</button></span>`).join('')
+        : '<span class="text-[11px] text-tk-muted">還沒有成員。加入 2 位以上，記帳時選「誰付的」，就會自動算出誰該給誰多少。</span>';
+      const sel = document.getElementById('expPayer'), keep = sel.value;
+      sel.innerHTML = '<option value="">不分帳（個人花費）</option>' + members.map(m => `<option value="${esc(m)}">${esc(m)}</option>`).join('');
+      if (members.includes(keep)) sel.value = keep;
+      renderSplitPick();
+    }
+    function renderSplitPick() {
+      const box = document.getElementById('expSplitPick');
+      const pick = document.getElementById('expSplitMode').value === 'pick' && members.length > 0;
+      box.hidden = !pick;
+      if (!pick) return;
+      const checked = new Set([...box.querySelectorAll('input:checked')].map(i => i.value));
+      box.innerHTML = members.map((m, i) => `<label for="expSplit${i}" class="flex items-center gap-1"><input id="expSplit${i}" type="checkbox" class="tick w-4 h-4" value="${esc(m)}" ${checked.size === 0 || checked.has(m) ? 'checked' : ''} />${esc(m)}</label>`).join('');
+    }
+    function addMember(e) {
+      e.preventDefault();
+      const input = document.getElementById('memberName');
+      const next = cleanMembers(members.concat(input.value));
+      if (next.length === members.length) { toast(input.value.trim() ? '這個名字已經在名單裡，或名單已滿' : '請輸入名字'); return; }
+      members = next; store.set(KEY_MEMBERS, members);
+      input.value = '';
+      renderExpenses();
+    }
+    function removeMember(i) {
+      const name = members[i];
+      members = members.filter((m, k) => k !== i); store.set(KEY_MEMBERS, members);
+      renderExpenses();
+      toast(`已移除「${name}」，他相關的帳不再計入分帳`);
+    }
+    function settleUp() {
+      const net = {}, paid = {}, owed = {};
+      members.forEach(m => { net[m] = 0; paid[m] = 0; owed[m] = 0; });
+      let skipped = 0, counted = 0;
+      expenses.forEach(x => {
+        const amt = Number(x.amount) || 0;
+        if (!x.payer) return;                                   // 個人花費，不分帳
+        const who = (Array.isArray(x.split) && x.split.length ? x.split : members).filter(m => m in net);
+        if (!(x.payer in net) || !who.length) { skipped++; return; }
+        counted++;
+        net[x.payer] += amt; paid[x.payer] += amt;
+        who.forEach(m => { net[m] -= amt / who.length; owed[m] += amt / who.length; });
+      });
+      const cred = members.filter(m => net[m] > 0.5).map(m => ({ m, v: net[m] })).sort((a, b) => b.v - a.v);
+      const debt = members.filter(m => net[m] < -0.5).map(m => ({ m, v: -net[m] })).sort((a, b) => b.v - a.v);
+      const transfers = [];
+      let i = 0, j = 0;
+      while (i < debt.length && j < cred.length) {
+        const amt = Math.min(debt[i].v, cred[j].v);
+        if (Math.round(amt) > 0) transfers.push({ from: debt[i].m, to: cred[j].m, amt: Math.round(amt) });
+        debt[i].v -= amt; cred[j].v -= amt;
+        if (debt[i].v < 0.5) i++;
+        if (cred[j].v < 0.5) j++;
+      }
+      return { transfers, paid, owed, skipped, counted };
+    }
+    function settleText() {
+      const r = settleUp(), rate = getRate();
+      const lines = ['【東京行分帳結算】'];
+      members.forEach(m => lines.push(`${m}：付了 ¥${Math.round(r.paid[m]).toLocaleString()}，應分攤 ¥${Math.round(r.owed[m]).toLocaleString()}`));
+      lines.push(r.transfers.length ? '— 轉帳 —' : '目前不用互相轉帳');
+      r.transfers.forEach(t => lines.push(`${t.from} → ${t.to}：¥${t.amt.toLocaleString()}（約 NT$${Math.round(t.amt * rate).toLocaleString()}）`));
+      return lines.join('\n');
+    }
+    function copySettle() {
+      const text = settleText();
+      const fallback = () => toast('這個瀏覽器不能自動複製，請長按結算內容手動複製');
+      try { navigator.clipboard.writeText(text).then(() => toast('已複製結算結果，可以貼到 LINE'), fallback); } catch (e) { fallback(); }
+    }
+    function renderSettle() {
+      const el = document.getElementById('settleBox');
+      if (members.length < 2) { el.innerHTML = ''; return; }
+      const r = settleUp(), rate = getRate();
+      el.innerHTML = `
+        <div class="rounded-xl bg-tk-night text-white p-3 space-y-2">
+          <div class="flex items-center justify-between gap-2">
+            <p class="text-sm font-bold">💸 分帳結算</p>
+            <button onclick="copySettle()" class="text-[11px] font-bold px-2.5 py-1 rounded-full bg-white/15">複製到 LINE</button>
+          </div>
+          ${r.counted === 0 ? '<p class="text-xs text-white/80">還沒有選「誰付的」的帳。記帳時選付款人，這裡就會自動結算。</p>' : `
+          <ul class="text-xs text-white/85 space-y-0.5">${members.map(m => `<li>${esc(m)}：付了 ¥${Math.round(r.paid[m]).toLocaleString()}，應分攤 ¥${Math.round(r.owed[m]).toLocaleString()}</li>`).join('')}</ul>
+          <ul class="space-y-1">${r.transfers.length ? r.transfers.map(t => `<li class="flex items-center justify-between gap-2 bg-white/10 rounded-lg px-2.5 py-1.5 text-sm"><span class="font-bold">${esc(t.from)} → ${esc(t.to)}</span><span class="font-black text-tk-goldSoft" style="font-variant-numeric:tabular-nums">¥${t.amt.toLocaleString()}<span class="text-[11px] font-normal text-white/70">（≈NT$${Math.round(t.amt * rate).toLocaleString()}）</span></span></li>`).join('') : '<li class="text-xs text-white/80">大家剛好打平，不用互相轉帳。</li>'}</ul>`}
+          ${r.skipped ? `<p class="text-[11px] text-white/60">有 ${r.skipped} 筆的付款人或分攤成員已不在名單，沒有計入。</p>` : ''}
+        </div>`;
+    }
     function renderExpenses() {
-      const total = expenses.reduce((s, x) => s + Number(x.amount), 0);
+      renderMembers();
+      const total = expenses.reduce((sum, x) => sum + Number(x.amount), 0);
       document.getElementById('totalExpenseDisplay').textContent = `¥${total.toLocaleString()}`;
       document.getElementById('totalExpenseTwd').textContent = `≈ NT$${Math.round(total * getRate()).toLocaleString()}`;
       const byCat = {};
       expenses.forEach(x => { byCat[x.cat] = (byCat[x.cat] || 0) + Number(x.amount); });
       document.getElementById('expenseByCat').innerHTML = Object.entries(byCat).sort((a, b) => b[1] - a[1])
         .map(([c, v]) => `<span class="text-[11px] px-2 py-1 rounded-full bg-tk-bg border border-tk-line">${esc(c)} <b>¥${v.toLocaleString()}</b></span>`).join('');
-      document.getElementById('expenseList').innerHTML = expenses.length ? expenses.map((x, i) => `
+      renderSettle();
+      document.getElementById('expenseList').innerHTML = expenses.length ? expenses.map((x, i) => {
+        const who = x.payer ? `${esc(x.payer)} 付・${Array.isArray(x.split) && x.split.length ? esc(x.split.join('、')) + ' 分' : '全員均分'}` : '';
+        return `
         <li class="py-2 flex items-center justify-between gap-2">
-          <span class="truncate"><span class="mr-1">${esc((x.cat || '📦').split(' ')[0])}</span>${esc(x.name)}<span class="text-tk-muted ml-1.5">${esc(x.date || '')}</span></span>
+          <span class="min-w-0">
+            <span class="block truncate"><span class="mr-1">${esc((x.cat || '📦').split(' ')[0])}</span>${esc(x.name)}<span class="text-tk-muted ml-1.5">${esc(x.date || '')}</span></span>
+            ${who ? `<span class="block truncate text-[11px] text-tk-muted">${who}</span>` : ''}
+          </span>
           <span class="flex items-center gap-2 shrink-0">
             <b class="text-tk-night">¥${Number(x.amount).toLocaleString()}</b>
             <button onclick="deleteExpense(${i})" class="text-tk-muted hover:text-tk-maple" aria-label="刪除">✕</button>
           </span>
-        </li>`).join('') : '<li class="py-4 text-center text-tk-muted">還沒有記帳，買第一塊布時記下來吧！</li>';
+        </li>`; }).join('') : '<li class="py-4 text-center text-tk-muted">還沒有記帳，買第一塊布時記下來吧！</li>';
     }
     function addExpense(e) {
       e.preventDefault();
@@ -3834,7 +4116,17 @@
       const amount = parseFloat(document.getElementById('expAmount').value);
       if (!name || isNaN(amount)) return;
       const d = new Date();
-      expenses.unshift({ name, amount, cat: document.getElementById('expCat').value, date: `${d.getMonth() + 1}/${d.getDate()}` });
+      const item = { name, amount, cat: document.getElementById('expCat').value, date: `${d.getMonth() + 1}/${d.getDate()}` };
+      const payer = document.getElementById('expPayer').value;
+      if (payer && members.includes(payer)) {
+        item.payer = payer;
+        if (document.getElementById('expSplitMode').value === 'pick') {
+          const picked = [...document.querySelectorAll('#expSplitPick input:checked')].map(i => i.value).filter(m => members.includes(m));
+          if (!picked.length) { toast('請至少勾選一位分攤的成員'); return; }
+          if (picked.length < members.length) item.split = picked;
+        }
+      }
+      expenses.unshift(item);
       store.set(KEY.exp, expenses); renderExpenses();
       document.getElementById('expName').value = ''; document.getElementById('expAmount').value = '';
     }
@@ -3978,7 +4270,7 @@
       document.getElementById(id).classList.remove('hidden');
     }
     function closeModal(id) { document.getElementById(id).classList.add('hidden'); }
-    document.addEventListener('keydown', e => { if (e.key === 'Escape') ['jpModal', 'apiKeyModal', 'addEventModal', 'addFoodModal', 'driverModal', 'recapModal'].forEach(closeModal); });
+    document.addEventListener('keydown', e => { if (e.key === 'Escape') ['jpModal', 'apiKeyModal', 'addEventModal', 'addFoodModal', 'driverModal', 'recapModal', 'photoModal'].forEach(closeModal); });
 
     /* =========================================================
        12. 初始化
@@ -3993,6 +4285,9 @@
     const savedRate = store.get(KEY.rate, null);
     if (savedRate) document.getElementById('exchangeRate').value = savedRate;
 
+    document.getElementById('vType').innerHTML = VAULT_TYPES.map(t => `<option value="${t}">${t}</option>`).join('');
+    renderVault();
+    pwaInit();
     document.getElementById('cfCat').innerHTML = FOOD_CATS.map(c => `<option value="${c}">${c}</option>`).join('');
     document.getElementById('cfArea').innerHTML = FOOD_AREAS.filter(a => a !== '多店連鎖').map(a => `<option value="${a}">${a}</option>`).join('');
     document.getElementById('cfDay').innerHTML = '<option value="">不指定</option>' + DEFAULT_DAYS.map(d => `<option value="${d.date}">${d.date}（${d.dow}）</option>`).join('');
