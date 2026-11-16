@@ -2231,7 +2231,7 @@
            <path d="M22,25.4h6M36,25.4h6" ${pen} stroke-width="1.4"/><path d="M20.5,19.5l7.5,2.6M43.5,19.5l-7.5,2.6" ${pen} stroke-width="1.7"/>
            <path d="M28,35q4,-3.2 8,0" ${pen} stroke-width="1.5"/>`;
       return `
-        <div class="hs ${done ? 'hs-happy' : ''} mt-3 flex items-end gap-2.5 select-none" role="img" aria-label="${done ? '泓碩開心地說：耶！走吧' : '泓碩不耐煩地問：好了嗎？要走了嗎？'}">
+        <div class="hs ${done ? 'hs-happy' : ''} mt-3 flex items-end gap-2.5 select-none" role="img" aria-label="${done ? '泓碩開心地說：耶！走吧' : '泓碩不耐煩地問：買好了沒？要走了嗎？'}">
           <div class="shrink-0 text-center">
             <svg class="hs-boy block" width="54" height="64" viewBox="0 0 64 76" aria-hidden="true">
               <ellipse cx="32" cy="74.6" rx="15" ry="1.6" fill="#000" opacity=".12"/>
@@ -2252,7 +2252,7 @@
             </svg>
             <div class="text-[10px] font-bold text-tk-muted leading-none mt-0.5">泓碩</div>
           </div>
-          <div class="hs-bubble mb-7">${done ? '<span>耶！走吧～</span>' : '<span class="hs-q1">好了嗎？</span><span class="hs-q2">要走了嗎？</span>'}</div>
+          <div class="hs-bubble mb-7">${done ? '<span>耶！走吧～</span>' : '<span class="hs-q1">買好了沒？</span><span class="hs-q2">要走了嗎？</span>'}</div>
         </div>`;
     }
     function renderDayContent() {
