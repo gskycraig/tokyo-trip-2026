@@ -2565,7 +2565,29 @@
       });
       const [hx, hy] = P('nippori');
       b += `<circle cx="${hx}" cy="${hy}" r="11" style="fill:rgb(var(--tk-night))"/><text x="${hx}" y="${hy + 4}" font-size="10" text-anchor="middle">🏨</text>` + label(hx + 15, hy - 6, '日暮里（飯店）', 'start', 11, 700);
-      if (!REDUCED && pts.length > 1) b += `<g><circle r="10" fill="#FFD36E" opacity=".35"/><circle r="5.5" fill="#FFD36E" stroke="#fff" stroke-width="1.5"/><animateMotion dur="${Math.max(7, pts.length * 2.2)}s" repeatCount="indefinite" path="M${pts.map(q => q[0] + ',' + q[1]).join(' L')}"/></g>`;
+      if (pts.length > 1) {
+        // 小電車：車身色帶跟著那一段搭的路線變色；步行的區間換成走路的小人
+        const seg = stops.slice(1).map((k, i) => LEG_INFO[[stops[i], k].sort().join('|')]);
+        b += `<g id="routeTrain" data-pts="${pts.map(q => q[0] + ',' + q[1]).join(' ')}" data-cols="${seg.map(f => f && f[1] !== 'walk' ? L_COL[f[1]] : '#D0492F').join(',')}" data-walk="${seg.map(f => f && f[1] === 'walk' ? 1 : 0).join(',')}" transform="translate(${pts[0][0]},${pts[0][1] - TRAIN_LIFT}) scale(${TRAIN_SCALE})">
+          <g class="tr-train">
+            <ellipse cx="0" cy="1.2" rx="14" ry="2.2" fill="#000" opacity=".2"/>
+            <path class="tr-speed" d="M-22,-15h5M-25,-10h7M-22,-5h5" fill="none" stroke-width="1.6" stroke-linecap="round" opacity="0" style="stroke:rgb(var(--tk-muted))"/>
+            <path d="M-6,-21l3,-4.5l3,4.5" fill="none" stroke="#5B6470" stroke-width="1.3" stroke-linecap="round" stroke-linejoin="round"/>
+            <rect x="-17" y="-21" width="34" height="18" rx="6" fill="#FFFDF6" stroke="#2B3A55" stroke-width="1.4"/>
+            <path class="tr-band" d="M-16.3,-9h32.6v0.7a4.6,4.6 0 0 1 -4.6,4.6h-23.4a4.6,4.6 0 0 1 -4.6,-4.6z" fill="#80C241"/>
+            <rect x="-13.5" y="-18" width="6" height="5.5" rx="1.6" fill="#BFE6FF" stroke="#2B3A55" stroke-width=".7"/>
+            <rect x="-5.5" y="-18" width="6" height="5.5" rx="1.6" fill="#BFE6FF" stroke="#2B3A55" stroke-width=".7"/>
+            <ellipse cx="3.6" cy="-11.6" rx="1.7" ry="1.1" fill="#FF9DB0" opacity=".85"/><ellipse cx="13.6" cy="-11.6" rx="1.7" ry="1.1" fill="#FF9DB0" opacity=".85"/>
+            <circle cx="6" cy="-14.4" r="1.5" fill="#2B3A55"/><circle cx="11.4" cy="-14.4" r="1.5" fill="#2B3A55"/>
+            <circle cx="6.5" cy="-14.9" r=".5" fill="#fff"/><circle cx="11.9" cy="-14.9" r=".5" fill="#fff"/>
+            <path d="M7.3,-12.2q1.4,1.5 2.8,0" fill="none" stroke="#2B3A55" stroke-width=".9" stroke-linecap="round"/>
+            <circle cx="14.3" cy="-6.3" r="1.4" fill="#FFD36E" stroke="#fff" stroke-width=".5"/>
+            <circle cx="-9" cy="-2.4" r="2.7" fill="#2B3A55"/><circle cx="-9" cy="-2.4" r="1" fill="#C9CED6"/>
+            <circle cx="9" cy="-2.4" r="2.7" fill="#2B3A55"/><circle cx="9" cy="-2.4" r="1" fill="#C9CED6"/>
+          </g>
+          <text class="tr-walk" x="0" y="-2" font-size="22" text-anchor="middle" transform="scale(-1,1)" style="display:none">🚶</text>
+        </g>`;
+      }
       return `<svg viewBox="0 0 400 290" class="w-full h-auto block" role="img" aria-label="Day ${day} 路線示意圖">${b}</svg>`;
     }
     function renderDayRoute() {
@@ -2582,7 +2604,7 @@
           <div class="px-3 pb-4 grid md:grid-cols-2 gap-3 items-start">
             <div class="min-w-0">
               ${routeMapSVG(d.day, r.stops)}
-              <p class="text-[10px] text-tk-muted mt-1 px-1">示意圖，非實際比例；會依你修改後的行程自動更新。綠色環線是 JR 山手線，紅色虛線是今天的移動順序。</p>
+              <p class="text-[10px] text-tk-muted mt-1 px-1">示意圖，非實際比例；會依你修改後的行程自動更新。綠色環線是 JR 山手線，紅色虛線是今天的移動順序；小電車會照順序跑一遍，每站停一下。</p>
               ${r.unknown.length ? `<p class="text-[11px] text-tk-ink mt-1 px-1">📍 圖上沒有標示的地點：${r.unknown.map(esc).join('、')}（右邊的交通卡仍可查路線）</p>` : ''}
             </div>
             <ol class="space-y-2 min-w-0">${r.legs.length ? r.legs.map(g => `
@@ -2600,7 +2622,76 @@
             </ol>
           </div>
         </details>`;
+      trainStart();
     }
+
+    // ---- 路線圖上的小電車：照今天的移動順序跑，每站停一下再出發 ----
+    const TRAIN_LIFT = 6, TRAIN_DWELL = 0.9, TRAIN_SCALE = 1.2;
+    const TRAIN = { raf: 0, el: null, segs: [], total: 0, t: 0, last: 0, vis: true, io: null, flip: 1, cur: null, sig: '', jump: false };
+    function trainKick() {
+      if (!TRAIN.raf && TRAIN.el && TRAIN.segs.length) { TRAIN.last = 0; TRAIN.raf = requestAnimationFrame(trainFrame); }
+    }
+    function trainStart() {
+      cancelAnimationFrame(TRAIN.raf); TRAIN.raf = 0;
+      if (TRAIN.io) { TRAIN.io.disconnect(); TRAIN.io = null; }
+      const el = TRAIN.el = document.getElementById('routeTrain');
+      TRAIN.segs = [];
+      if (!el || REDUCED) return;
+      const pts = el.dataset.pts.split(' ').map(s => s.split(',').map(Number));
+      const cols = el.dataset.cols.split(','), walk = el.dataset.walk.split(',');
+      let t = 0;
+      for (let i = 1; i < pts.length; i++) {
+        const a = pts[i - 1], b = pts[i], len = Math.hypot(b[0] - a[0], b[1] - a[1]);
+        if (len < 1) continue;
+        const isWalk = walk[i - 1] === '1';
+        const dur = Math.max(1.3, len / (isWalk ? 20 : 42));
+        TRAIN.segs.push({ a, b, t0: t + TRAIN_DWELL, dur, col: cols[i - 1], walk: isWalk });
+        t += TRAIN_DWELL + dur;
+      }
+      if (!TRAIN.segs.length) return;
+      TRAIN.total = t + 1.5;
+      const first = TRAIN.segs[0].a, last = TRAIN.segs[TRAIN.segs.length - 1].b;
+      TRAIN.jump = Math.hypot(first[0] - last[0], first[1] - last[1]) > 1;
+      // 同一條路線重畫（例如只是打勾）就接著跑，不要每次都跳回起點
+      if (TRAIN.sig !== el.dataset.pts) { TRAIN.sig = el.dataset.pts; TRAIN.t = 0; TRAIN.flip = 1; }
+      TRAIN.cur = null; TRAIN.vis = true;
+      if ('IntersectionObserver' in window) {
+        TRAIN.io = new IntersectionObserver(es => { TRAIN.vis = es[es.length - 1].isIntersecting; if (TRAIN.vis) trainKick(); });
+        TRAIN.io.observe(el.ownerSVGElement);
+      }
+      trainKick();
+    }
+    function trainFrame(now) {
+      TRAIN.raf = 0;
+      const el = TRAIN.el;
+      if (!el || !el.isConnected || !TRAIN.vis || document.hidden) return;   // 看不到就停，回來時由 trainKick 再啟動
+      const dt = Math.min(0.1, (now - (TRAIN.last || now)) / 1000);
+      TRAIN.last = now;
+      const t = TRAIN.t = (TRAIN.t + dt) % TRAIN.total;
+      const segs = TRAIN.segs;
+      let s = segs[segs.length - 1], k = 1;
+      for (const g of segs) { if (t < g.t0 + g.dur) { s = g; k = Math.max(0, (t - g.t0) / g.dur); break; } }
+      const e = k < .5 ? 2 * k * k : 1 - Math.pow(-2 * k + 2, 2) / 2;   // 起步加速、進站減速
+      const dx = s.b[0] - s.a[0], dy = s.b[1] - s.a[1];
+      const moving = k > 0 && k < 1;
+      if (Math.abs(dx) > 2 && t > s.t0 - TRAIN_DWELL / 2) TRAIN.flip = dx < 0 ? -1 : 1;   // 停站停到一半才掉頭
+      const lean = Math.min(1, Math.min(k, 1 - k) * 6);
+      const ang = moving ? Math.max(-12, Math.min(12, Math.atan2(dy, Math.abs(dx)) * 180 / Math.PI)) * lean : 0;
+      const bob = !moving ? 0 : s.walk ? -Math.abs(Math.sin(t * 9)) * 1.8 : Math.sin(t * 16) * .6 * lean;
+      const x = s.a[0] + dx * e, y = s.a[1] + dy * e - TRAIN_LIFT + bob;
+      el.setAttribute('transform', `translate(${x.toFixed(1)},${y.toFixed(1)}) scale(${TRAIN.flip * TRAIN_SCALE},${TRAIN_SCALE}) rotate(${ang.toFixed(1)})`);
+      if (TRAIN.cur !== s) {
+        TRAIN.cur = s;
+        el.querySelector('.tr-band').setAttribute('fill', s.col);
+        el.querySelector('.tr-train').style.display = s.walk ? 'none' : '';
+        el.querySelector('.tr-walk').style.display = s.walk ? '' : 'none';
+      }
+      el.querySelector('.tr-speed').setAttribute('opacity', (moving && !s.walk ? Math.sin(Math.PI * k) * .9 : 0).toFixed(2));
+      // 起點和終點不同站時（第一天、最後一天），淡出後再從起點淡入
+      el.setAttribute('opacity', TRAIN.jump ? Math.max(0, Math.min(1, t / .4, (TRAIN.total - t) / .5)).toFixed(2) : '1');
+      TRAIN.raf = requestAnimationFrame(trainFrame);
+    }
+    document.addEventListener('visibilitychange', trainKick);
 
     // ---- B2 明日預告 ----
     const TOMORROW = {
