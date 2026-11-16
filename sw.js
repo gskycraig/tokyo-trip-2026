@@ -1,5 +1,5 @@
 // 東京行程網頁的離線快取。VERSION 由 build_site.py 在建置時填入。
-const VERSION = '20261116-104459';
+const VERSION = '20261116-110416';
 const CACHE = 'tokyo-trip-' + VERSION;      // 頁面與 CDN 資源，每次改版換新
 const IMG_CACHE = 'tokyo-trip-img';          // 照片，跨版本保留，避免重複下載
 const PRECACHE = ['./', 'manifest.webmanifest', 'icon-192.png', 'icon-512.png', 'icon-180.png'];
