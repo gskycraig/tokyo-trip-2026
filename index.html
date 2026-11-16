@@ -2306,6 +2306,7 @@
       if (meta) meta.setAttribute('content', dark ? '#11131B' : '#1B2440');
       const btn = document.getElementById('themeBtn');
       if (btn) btn.textContent = themePref === 'auto' ? '🌗 自動' : themePref === 'dark' ? '🌙 夜間' : '☀️ 日間';
+      if (document.getElementById('routeMap')) renderDayRoute();
     }
     function cycleTheme() {
       themePref = themePref === 'auto' ? 'dark' : themePref === 'dark' ? 'light' : 'auto';
@@ -2523,8 +2524,8 @@
       const nodes = [];
       d.events.forEach(ev => {
         const [loc, end] = evLoc(ev);
-        nodes.push({ key: loc, name: loc ? ST[loc][2] : ev.title, q: loc === 'nippori' ? HOTEL_Q : (ev.map || ev.title) });
-        if (end) nodes.push({ key: end, name: ST[end][2], q: ST_Q[end] });
+        nodes.push({ key: loc, name: loc ? ST[loc][2] : ev.title, q: loc === 'nippori' ? HOTEL_Q : (ev.map || ev.title), t: /台灣/.test(ev.timeLabel || '') ? null : toMin(ev.time) });   // 去程航班標的是台灣起飛時間，不能當成到成田的時間
+        if (end) nodes.push({ key: end, name: ST[end][2], q: ST_Q[end], t: toMin(ev.end) });
       });
       if (d.day !== 1 && nodes.length && nodes[0].key !== 'nippori') nodes.unshift(hotel);
       if (d.day !== 8 && nodes.length && nodes[nodes.length - 1].key !== 'nippori') nodes.push(hotel);
@@ -2537,13 +2538,33 @@
         legs.push({ from: a.name, to: b.name, oq: a.key && a.key !== 'nippori' && info ? ST_Q[a.key] : a.q, dq: b.key && b.key !== 'nippori' && info ? ST_Q[b.key] : b.q,
           line: info ? info[0] : '這段沒有預先整理，請按「即時路線」查怎麼搭', col: info ? info[1] : 'unknown', mins: info ? info[2] : '', note: info ? info[3] : '' });
       }
-      return { stops: seq.filter(n => n.key).map(n => n.key), legs, unknown: seq.filter(n => !n.key).map(n => n.name) };
+      // 每一站的時間（分鐘），給小地圖的天色用：沒有時間的站（從飯店出發、回飯店）用前後推算，而且時間只會往後走
+      const known = seq.filter(n => n.key);
+      const times = known.map(n => n.t);
+      for (let i = 0; i < times.length; i++) {
+        if (times[i] == null) {
+          const next = times.slice(i + 1).find(x => x != null);
+          times[i] = i === 0 ? (next == null ? 540 : next - 40) : times[i - 1] + (i === times.length - 1 ? 100 : 30);
+        }
+        if (i) times[i] = Math.max(times[i], times[i - 1]);
+        times[i] = Math.max(300, Math.min(1430, times[i]));
+      }
+      return { stops: known.map(n => n.key), times, legs, unknown: seq.filter(n => !n.key).map(n => n.name) };
     }
-    function routeMapSVG(day, stops) {
+    function routeMapSVG(day, stops, times) {
       const P = k => ST[k];
       const line = (keys, col, w, op) => `<polyline points="${keys.map(k => P(k)[0] + ',' + P(k)[1]).join(' ')}" fill="none" stroke="${col}" stroke-width="${w}" stroke-linejoin="round" stroke-linecap="round" opacity="${op}"/>`;
       const label = (x, y, text, anchor, size, weight) => `<text x="${x}" y="${y}" font-size="${size}" font-weight="${weight}" text-anchor="${anchor}" style="fill:rgb(var(--tk-ink));stroke:rgb(var(--tk-sand));stroke-width:3px;paint-order:stroke">${text}</text>`;
-      let b = `<rect width="400" height="290" rx="14" style="fill:rgb(var(--tk-sand))"/>`;
+      let b = `<defs>
+          <linearGradient id="skyGrad" x1="0" y1="0" x2="0" y2="1"><stop id="skyTop" offset="0" stop-color="#F1EBDF"/><stop id="skyBot" offset="1" stop-color="#F1EBDF"/></linearGradient>
+          <radialGradient id="skyGlowGrad"><stop id="skyG0" offset="0" stop-color="#fff" stop-opacity=".95"/><stop id="skyG1" offset="1" stop-color="#fff" stop-opacity="0"/></radialGradient>
+          <clipPath id="skyClip"><rect width="400" height="290" rx="14"/></clipPath>
+        </defs>
+        <rect width="400" height="290" rx="14" fill="url(#skyGrad)"/>
+        <g clip-path="url(#skyClip)">
+          <circle id="skyGlow" r="80" cx="60" cy="50" fill="url(#skyGlowGrad)" opacity="0"/>
+          <g id="skyStars" opacity="0" fill="#fff">${SKY_STARS.map(([x, y], i) => `<circle class="tw" cx="${x}" cy="${y}" r="${i % 3 ? .9 : 1.4}" style="animation-delay:${(i * .37 % 3.2).toFixed(2)}s"/>`).join('')}</g>
+        </g>`;
       b += line(['nippori', 'narita'], L_COL.skyliner, 3, .4) + line(['tokyo', 'minamifunabashi'], L_COL.keiyo, 3, .4) + line(['shinjuku', 'tachikawa'], L_COL.chuo, 3, .4)
         + line(['ueno', 'shimbashi', 'aoyama', 'omotesando', 'shibuya'], L_COL.ginza, 2.5, .4) + line(['ueno', 'akihabara', 'hibiya', 'roppongi', 'ebisu'], L_COL.hibiya, 2.5, .45)
         + line(['akihabara', 'korakuen', 'shinjuku'], L_COL.sobu, 2.5, .5) + line(['nippori', 'oshiage'], L_COL.keisei, 2.5, .4) + line(['shinjuku', 'yomiuriland'], L_COL.keio, 2.5, .45);
@@ -2565,10 +2586,11 @@
       });
       const [hx, hy] = P('nippori');
       b += `<circle cx="${hx}" cy="${hy}" r="11" style="fill:rgb(var(--tk-night))"/><text x="${hx}" y="${hy + 4}" font-size="10" text-anchor="middle">🏨</text>` + label(hx + 15, hy - 6, '日暮里（飯店）', 'start', 11, 700);
+      b += `<g><rect x="8" y="8" width="90" height="20" rx="10" opacity=".8" style="fill:rgb(var(--tk-card))"/><text id="skyClock" x="53" y="22" font-size="10.5" font-weight="700" text-anchor="middle" style="fill:rgb(var(--tk-ink))"></text></g>`;
       if (pts.length > 1) {
         // 小電車：車身色帶跟著那一段搭的路線變色；步行的區間換成走路的小人
         const seg = stops.slice(1).map((k, i) => LEG_INFO[[stops[i], k].sort().join('|')]);
-        b += `<g id="routeTrain" data-pts="${pts.map(q => q[0] + ',' + q[1]).join(' ')}" data-cols="${seg.map(f => f && f[1] !== 'walk' ? L_COL[f[1]] : '#D0492F').join(',')}" data-walk="${seg.map(f => f && f[1] === 'walk' ? 1 : 0).join(',')}" transform="translate(${pts[0][0]},${pts[0][1] - TRAIN_LIFT}) scale(${TRAIN_SCALE})">
+        b += `<g id="routeTrain" data-pts="${pts.map(q => q[0] + ',' + q[1]).join(' ')}" data-times="${times.join(',')}" data-cols="${seg.map(f => f && f[1] !== 'walk' ? L_COL[f[1]] : '#D0492F').join(',')}" data-walk="${seg.map(f => f && f[1] === 'walk' ? 1 : 0).join(',')}" transform="translate(${pts[0][0]},${pts[0][1] - TRAIN_LIFT}) scale(${TRAIN_SCALE})">
           <g class="tr-train">
             <ellipse cx="0" cy="1.2" rx="14" ry="2.2" fill="#000" opacity=".2"/>
             <path class="tr-speed" d="M-22,-15h5M-25,-10h7M-22,-5h5" fill="none" stroke-width="1.6" stroke-linecap="round" opacity="0" style="stroke:rgb(var(--tk-muted))"/>
@@ -2588,7 +2610,7 @@
           <text class="tr-walk" x="0" y="-2" font-size="22" text-anchor="middle" transform="scale(-1,1)" style="display:none">🚶</text>
         </g>`;
       }
-      return `<svg viewBox="0 0 400 290" class="w-full h-auto block" role="img" aria-label="Day ${day} 路線示意圖">${b}</svg>`;
+      return `<svg id="routeMap" viewBox="0 0 400 290" class="w-full h-auto block" role="img" aria-label="Day ${day} 路線示意圖">${b}</svg>`;
     }
     function renderDayRoute() {
       const el = document.getElementById('dayRoute');
@@ -2603,8 +2625,8 @@
           </summary>
           <div class="px-3 pb-4 grid md:grid-cols-2 gap-3 items-start">
             <div class="min-w-0">
-              ${routeMapSVG(d.day, r.stops)}
-              <p class="text-[10px] text-tk-muted mt-1 px-1">示意圖，非實際比例；會依你修改後的行程自動更新。綠色環線是 JR 山手線，紅色虛線是今天的移動順序；小電車會照順序跑一遍，每站停一下。</p>
+              ${routeMapSVG(d.day, r.stops, r.times)}
+              <p class="text-[10px] text-tk-muted mt-1 px-1">示意圖，非實際比例；會依你修改後的行程自動更新。綠色環線是 JR 山手線，紅色虛線是今天的移動順序；小電車會照順序跑一遍，每站停一下，背景天色跟著它跑到的時間變（早晨、中午、傍晚、晚上）。</p>
               ${r.unknown.length ? `<p class="text-[11px] text-tk-ink mt-1 px-1">📍 圖上沒有標示的地點：${r.unknown.map(esc).join('、')}（右邊的交通卡仍可查路線）</p>` : ''}
             </div>
             <ol class="space-y-2 min-w-0">${r.legs.length ? r.legs.map(g => `
@@ -2622,7 +2644,90 @@
             </ol>
           </div>
         </details>`;
+      skyInit(d.day, r.times);
       trainStart();
+    }
+
+    // ---- 小地圖的天色：跟著小電車跑到的行程時間，早晨 → 中午 → 傍晚 → 晚上 ----
+    // 東京 12 月約 06:35 日出、16:28 日落，所以 16 點就是傍晚、17:30 之後算晚上
+    const SKY_KEYS = [0, 330, 390, 570, 660, 870, 960, 1005, 1050, 1440];   // 分鐘
+    const SKY_IDX = [3, 3, 0, 0, 1, 1, 2, 2, 3, 3];                          // 0 早晨 1 中午 2 傍晚 3 晚上
+    const SKY_PAL = {
+      light: [
+        { top: [255, 212, 194], bot: [255, 243, 214], glow: [255, 224, 140] },
+        { top: [172, 220, 255], bot: [232, 246, 255], glow: [255, 255, 224] },
+        { top: [188, 158, 220], bot: [255, 182, 124], glow: [255, 132, 72] },
+        { top: [18, 24, 48], bot: [44, 48, 88], glow: [120, 130, 200] }],
+      dark: [
+        { top: [72, 50, 68], bot: [98, 70, 58], glow: [255, 200, 130] },
+        { top: [28, 58, 86], bot: [38, 78, 98], glow: [200, 235, 255] },
+        { top: [62, 42, 92], bot: [114, 62, 46], glow: [255, 130, 70] },
+        { top: [10, 14, 30], bot: [26, 32, 64], glow: [90, 100, 170] }]
+    };
+    // 背景偏暗時，地圖裡的文字和圓點改用夜間配色，才看得清楚
+    const SKY_VARS = {
+      light: { ink: '35 32 28', card: '255 255 255', maple: '196 71 47', night: '27 36 64', muted: '121 114 106' },
+      dark: { ink: '233 230 224', card: '28 31 43', maple: '236 118 92', night: '47 62 118', muted: '163 158 150' }
+    };
+    const SKY_STARS = [[150, 20], [196, 34], [300, 30], [346, 58], [60, 96], [176, 96], [330, 150], [220, 120], [70, 200], [160, 180], [300, 236], [352, 270], [110, 262], [250, 270], [40, 52], [380, 120], [20, 180], [270, 60]];
+    const SKY = { svg: null, v: null, dark: false, mins: 540, sig: '', last: '' };
+    function skyVec(mins, dark) {
+      const P = SKY_PAL[dark ? 'dark' : 'light'];
+      let i = 1;
+      while (i < SKY_KEYS.length - 1 && mins > SKY_KEYS[i]) i++;
+      const f = Math.max(0, Math.min(1, (mins - SKY_KEYS[i - 1]) / (SKY_KEYS[i] - SKY_KEYS[i - 1])));
+      const A = P[SKY_IDX[i - 1]], B = P[SKY_IDX[i]];
+      const mix = (a, b) => a.map((x, j) => x + (b[j] - x) * f);
+      const na = SKY_IDX[i - 1] === 3 ? 1 : 0, nb = SKY_IDX[i] === 3 ? 1 : 0;
+      const sun = Math.max(0, Math.min(1, (mins - 390) / 600));   // 06:30 → 16:30，太陽從左邊移到右邊
+      return [...mix(A.top, B.top), ...mix(A.bot, B.bot), ...mix(A.glow, B.glow), na + (nb - na) * f, 30 + sun * 340, 74 - Math.sin(Math.PI * sun) * 48];
+    }
+    function skyLabel(mins) {
+      const m = Math.round(mins / 10) * 10;
+      const [icon, name] = m < 330 ? ['🌙', '深夜'] : m < 600 ? ['🌅', '早晨'] : m < 690 ? ['☀️', '上午'] : m < 810 ? ['☀️', '中午'] : m < 945 ? ['🌤️', '下午'] : m < 1035 ? ['🌇', '傍晚'] : ['🌙', '晚上'];
+      return `${icon} ${name} ${String(Math.floor(m / 60)).padStart(2, '0')}:${String(m % 60).padStart(2, '0')}`;
+    }
+    function skyPaint() {
+      const svg = SKY.svg, v = SKY.v;
+      if (!svg || !v) return;
+      const c = i => `rgb(${Math.round(v[i])},${Math.round(v[i + 1])},${Math.round(v[i + 2])})`;
+      const mid = [0, 1, 2].map(j => Math.round((v[j] + v[3 + j]) / 2));
+      const lum = (0.2126 * mid[0] + 0.7152 * mid[1] + 0.0722 * mid[2]) / 255;
+      const vars = SKY_VARS[SKY.dark || lum < .42 ? 'dark' : 'light'];
+      const text = skyLabel(SKY.mins);
+      const key = [c(0), c(3), c(6), v[9].toFixed(2), v[10].toFixed(0), v[11].toFixed(0), vars.ink, text].join('|');
+      if (key === SKY.last) return;
+      SKY.last = key;
+      const $ = id => svg.querySelector('#' + id);
+      svg.style.cssText = `--tk-sand:${mid.join(' ')};--tk-ink:${vars.ink};--tk-card:${vars.card};--tk-maple:${vars.maple};--tk-night:${vars.night};--tk-muted:${vars.muted}`;
+      $('skyTop').setAttribute('stop-color', c(0));
+      $('skyBot').setAttribute('stop-color', c(3));
+      $('skyG0').setAttribute('stop-color', c(6));
+      $('skyG1').setAttribute('stop-color', c(6));
+      const glow = $('skyGlow');
+      glow.setAttribute('cx', v[10].toFixed(0)); glow.setAttribute('cy', v[11].toFixed(0));
+      glow.setAttribute('opacity', ((1 - v[9]) * (SKY.dark ? .4 : .8)).toFixed(2));
+      $('skyStars').setAttribute('opacity', v[9].toFixed(2));
+      $('skyClock').textContent = text;
+    }
+    function skyInit(day, times) {
+      SKY.svg = document.getElementById('routeMap');
+      SKY.dark = document.documentElement.classList.contains('dark');
+      SKY.last = '';
+      const sig = day + '|' + times.join(',');
+      // 同一條路線重畫（例如只是打勾）就沿用目前的天色；換一天、換行程，或沒有動畫時，直接用第一站的時間
+      if (SKY.sig !== sig || !SKY.v || REDUCED || times.length < 2) {
+        SKY.sig = sig;
+        SKY.mins = times.length ? times[0] : 540;
+        SKY.v = skyVec(SKY.mins, SKY.dark);
+      }
+      skyPaint();
+    }
+    function skyStep(mins, dt) {
+      SKY.mins = mins;
+      const target = skyVec(mins, SKY.dark), a = 1 - Math.exp(-dt * 5);   // 慢慢靠過去，回到早上時不會突然跳色
+      SKY.v = SKY.v.map((x, i) => x + (target[i] - x) * a);
+      skyPaint();
     }
 
     // ---- 路線圖上的小電車：照今天的移動順序跑，每站停一下再出發 ----
@@ -2638,14 +2743,14 @@
       TRAIN.segs = [];
       if (!el || REDUCED) return;
       const pts = el.dataset.pts.split(' ').map(s => s.split(',').map(Number));
-      const cols = el.dataset.cols.split(','), walk = el.dataset.walk.split(',');
+      const cols = el.dataset.cols.split(','), walk = el.dataset.walk.split(','), times = el.dataset.times.split(',').map(Number);
       let t = 0;
       for (let i = 1; i < pts.length; i++) {
         const a = pts[i - 1], b = pts[i], len = Math.hypot(b[0] - a[0], b[1] - a[1]);
         if (len < 1) continue;
         const isWalk = walk[i - 1] === '1';
         const dur = Math.max(1.3, len / (isWalk ? 20 : 42));
-        TRAIN.segs.push({ a, b, t0: t + TRAIN_DWELL, dur, col: cols[i - 1], walk: isWalk });
+        TRAIN.segs.push({ a, b, t0: t + TRAIN_DWELL, dur, col: cols[i - 1], walk: isWalk, ta: times[i - 1], tb: times[i] });
         t += TRAIN_DWELL + dur;
       }
       if (!TRAIN.segs.length) return;
@@ -2689,6 +2794,7 @@
       el.querySelector('.tr-speed').setAttribute('opacity', (moving && !s.walk ? Math.sin(Math.PI * k) * .9 : 0).toFixed(2));
       // 起點和終點不同站時（第一天、最後一天），淡出後再從起點淡入
       el.setAttribute('opacity', TRAIN.jump ? Math.max(0, Math.min(1, t / .4, (TRAIN.total - t) / .5)).toFixed(2) : '1');
+      skyStep(s.ta + (s.tb - s.ta) * e, dt);
       TRAIN.raf = requestAnimationFrame(trainFrame);
     }
     document.addEventListener('visibilitychange', trainKick);
