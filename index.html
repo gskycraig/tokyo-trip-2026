@@ -4483,6 +4483,7 @@
     }
     function saveApiKey() {
       geminiApiKey = document.getElementById('geminiApiKeyInput').value.trim();
+      aiModels = null; store.put(AI_MODEL_KEY, '');
       store.set(KEY.api, geminiApiKey); updateApiStatus(); closeModal('apiKeyModal');
     }
     const fmt = s => esc(s).replace(/\*\*(.+?)\*\*/g, '<strong>$1</strong>');
@@ -4569,6 +4570,79 @@
       return `目前選的是 **${d.date}（${d.dow}）${d.title}**：\n${d.events.map(e => `• ${e.timeLabel || e.time}　${e.title}`).join('\n')}\n\n（離線模式只能從行程資料整理答案；在右上角「API 設定」填入 Gemini API Key，就能自由提問。）`;
     }
 
+    // ---- Gemini：模型會改版、舊的會下架，所以不寫死型號，先問這把金鑰有哪些模型可用，再挑一個 ----
+    const GEMINI = 'https://generativelanguage.googleapis.com/v1beta/';
+    const AI_MODEL_KEY = 'tk2026_ai_model';
+    let aiModels = null;   // 這把金鑰可用的模型，照偏好排序
+    function pickGeminiModels(models) {
+      const ok = (models || []).filter(m => (m.supportedGenerationMethods || []).includes('generateContent')).map(m => String(m.name || '').replace(/^models\//, ''));
+      const ver = n => { const m = /^gemini-(\d+(?:\.\d+)?)-/.exec(n); return m ? parseFloat(m[1]) : 0; };
+      const byVer = (x, y) => ver(y) - ver(x);
+      const text = ok.filter(n => /^gemini-/.test(n) && !/image|tts|live|audio|embedding|robotics|computer-use/.test(n));
+      // 偏好：正式版 flash（版本新的優先）→ 官方的「最新 flash」別名 → 預覽版 flash → flash-lite → 其他
+      const groups = [
+        text.filter(n => /^gemini-\d+(\.\d+)?-flash$/.test(n)).sort(byVer),
+        text.filter(n => n === 'gemini-flash-latest'),
+        text.filter(n => /^gemini-\d+(\.\d+)?-flash-preview/.test(n)).sort(byVer),
+        text.filter(n => /flash-lite/.test(n)).sort(byVer),
+        text.filter(n => /flash/.test(n)).sort(byVer),
+        text.filter(n => /pro/.test(n)).sort(byVer)
+      ];
+      return [...new Set(groups.flat())];
+    }
+    const geminiErr = (status, data) => Object.assign(new Error((data && data.error && data.error.message) || 'HTTP ' + status), { status, api: (data && data.error) || null });
+    async function geminiListModels() {
+      const res = await fetch(`${GEMINI}models?pageSize=1000&key=${encodeURIComponent(geminiApiKey)}`);
+      const data = await res.json().catch(() => ({}));
+      if (!res.ok) throw geminiErr(res.status, data);
+      return pickGeminiModels(data.models);
+    }
+    async function geminiCall(model, text) {
+      const res = await fetch(`${GEMINI}models/${encodeURIComponent(model)}:generateContent?key=${encodeURIComponent(geminiApiKey)}`, {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ contents: [{ role: 'user', parts: [{ text }] }] })
+      });
+      const data = await res.json().catch(() => ({}));
+      if (!res.ok) return { status: res.status, err: geminiErr(res.status, data) };
+      const reply = ((data.candidates && data.candidates[0] && data.candidates[0].content && data.candidates[0].content.parts) || []).map(x => x.text || '').join('').trim();
+      if (reply) return { status: 200, reply };
+      const why = (data.promptFeedback && data.promptFeedback.blockReason) || (data.candidates && data.candidates[0] && data.candidates[0].finishReason) || '';
+      return { status: 200, err: Object.assign(new Error('沒有回覆內容' + (why ? '（' + why + '）' : '')), { status: 200, blocked: true }) };
+    }
+    async function geminiAsk(text) {
+      const retry = st => [400, 403, 404, 429].includes(st);   // 這個模型不能用（下架、沒額度、沒權限）就換下一個
+      const saved = store.get(AI_MODEL_KEY, '');
+      let last = null;
+      if (saved) {
+        last = await geminiCall(saved, text);
+        if (last.reply) return last.reply;
+        if (!retry(last.status)) throw last.err;
+      }
+      if (!aiModels) aiModels = await geminiListModels();   // 金鑰本身有問題會在這裡丟出來
+      for (const m of aiModels.filter(x => x !== saved).slice(0, 4)) {
+        last = await geminiCall(m, text);
+        if (last.reply) { store.put(AI_MODEL_KEY, m); return last.reply; }
+        if (!retry(last.status)) break;
+      }
+      throw last ? last.err : new Error('這把金鑰目前沒有可用的 Gemini 模型');
+    }
+    function geminiErrorText(err) {
+      const msg = String((err && err.message) || err || ''), st = err && err.status;
+      const reason = JSON.stringify((err && err.api && err.api.details) || '');
+      let hint;
+      if (/API_KEY_INVALID/.test(reason) || /API key not valid/i.test(msg)) hint = '金鑰不正確。請到右上角「API」重新貼一次：整串以 AIza 開頭，前後不要有空白或換行。';
+      else if (/leaked|expired|revoked/i.test(msg)) hint = '這把金鑰已被 Google 停用（可能曾經外流或過期），請到 Google AI Studio 重新建立一把。';
+      else if (st === 403) hint = '這把金鑰沒有使用 Gemini 的權限。常見原因：金鑰不是在 Google AI Studio 建立的、金鑰設了使用限制，或所在地區不支援。';
+      else if (st === 429) hint = '已超過免費額度或次數上限，請等一兩分鐘再問；如果一直出現，代表今天的額度用完了。';
+      else if (st === 404) hint = 'Google 找不到可用的模型，請稍後再試。';
+      else if (st >= 500) hint = 'Google 那邊暫時忙線，請稍後再問一次。';
+      else if (err && err.blocked) hint = 'Google 沒有給出回覆，可能是問題被安全過濾擋下，換個問法試試。';
+      else if (!st) hint = '連不上 Google。請確認網路；如果是從 claude.ai 的分享連結開的，那裡會擋對外連線，請改用 GitHub 的正式網址。';
+      else hint = '無法取得 AI 回覆。';
+      return hint + (msg ? '\n\n（' + (st ? 'Google 回覆 ' + st : '錯誤訊息') + '：' + msg.slice(0, 240) + '）' : '');
+    }
+
     async function handleChatSubmit(e) {
       e.preventDefault();
       const input = document.getElementById('chatInput');
@@ -4585,16 +4659,10 @@
       try {
         const slim = itinerary.map(d => ({ date: d.date, dow: d.dow, title: d.title, events: d.events.map(({ time, end, timeLabel, type, title, note, alt, route, tags }) => ({ time, end, timeLabel, type, title, note, alt, route, tags })) }));
         const ctx = `你是專屬的東京旅遊 AI 管家，協助旅客進行 2026/12/02–12/09 的東京自由行，全程住日暮里的 APA 飯店〈TKP日暮里駅前〉（荒川區東日暮里 5-52-9，日暮里站步行約 2 分，帶大行李走有電梯的北改札）。去程星宇 JX802 台灣時間 10:10 桃園第一航廈起飛、抵達成田第2航廈；回程 JX801 日本時間 13:45 從成田第2航廈 3F 出境、抵達桃園第一航廈；機場與日暮里之間搭京成 Skyliner（第2航廈對應「空港第2ビル」站）。旅客的重點是：早上賞銀杏與紅葉、午後逛日暮里布店（TOMATO 週日休息）、晚上看聖誕燈飾。完整行程 JSON：\n${JSON.stringify(slim)}\n旅客的美食與咖啡候選清單：\n${JSON.stringify(FOOD.map(({ cat, must, name, area, days, when, tip }) => ({ cat, must, name, area, days, when, tip })))}\n伴手禮候選（where：tokyo=東京站、narita=成田T2出境後、ueno=上野、nippori=日暮里、other=百貨藥妝）：\n${JSON.stringify(GIFTS.map(({ name, where, tip }) => ({ name, where, tip })))}\n旅客目前的伴手禮清單：${JSON.stringify(GIFTS.filter(g => giftCart[g.id]).map(g => g.name + '×' + giftCart[g.id]))}\n請用繁體中文回答，語氣親切，給出具體可執行的時間、路線與交通建議；不確定的營業時間請提醒以官網為準。`;
-        const res = await fetch(`https://generativelanguage.googleapis.com/v1beta/models/gemini-2.5-flash:generateContent?key=${encodeURIComponent(geminiApiKey)}`, {
-          method: 'POST',
-          headers: { 'Content-Type': 'application/json' },
-          body: JSON.stringify({ contents: [{ role: 'user', parts: [{ text: `${ctx}\n\n旅客提問：${prompt}` }] }] })
-        });
-        const data = await res.json();
-        const reply = data?.candidates?.[0]?.content?.parts?.[0]?.text || '抱歉，目前無法取得 AI 回覆，請確認 API Key 是否正確。';
+        const reply = await geminiAsk(`${ctx}\n\n旅客提問：${prompt}`);
         bubble.innerHTML = aiBubble(fmt(reply));
       } catch (err) {
-        bubble.innerHTML = aiBubble('無法連線至 Gemini API，請檢查網路或金鑰設定。', '<span class="text-tk-maple">連線異常</span>');
+        bubble.innerHTML = aiBubble(fmt(geminiErrorText(err)), '<span class="text-tk-maple">AI 管家無法回覆</span>');
       }
       document.getElementById('chatMessages').scrollTop = 1e9;
     }
