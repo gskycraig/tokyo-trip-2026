@@ -2435,8 +2435,8 @@
       ikebukuro: [118, 62, '池袋'], nippori: [238, 56, '日暮里'], ueno: [262, 92, '上野'], akihabara: [270, 126, '秋葉原'], tokyo: [274, 160, '東京'],
       yurakucho: [264, 178, '有樂町'], shimbashi: [250, 198, '新橋'], shinagawa: [214, 252, '品川'], ebisu: [150, 228, '惠比壽'], shibuya: [128, 208, '澀谷'],
       harajuku: [116, 184, '原宿'], shinjuku: [108, 140, '新宿'],
-      narita: [384, 24, '成田機場'], oshiage: [328, 100, '押上・晴空塔'], minamifunabashi: [386, 210, '南船橋'], tachikawa: [16, 140, '立川'], yomiuriland: [30, 262, '讀賣樂園'],
-      aoyama: [166, 176, '外苑'], omotesando: [142, 194, '表參道'], roppongi: [188, 212, '六本木'], gyoen: [140, 150, '新宿御苑'],
+      narita: [376, 40, '成田機場'], oshiage: [328, 100, '押上・晴空塔'], minamifunabashi: [377, 210, '南船橋'], tachikawa: [24, 140, '立川'], yomiuriland: [30, 262, '讀賣樂園'],
+      aoyama: [166, 176, '外苑'], omotesando: [146, 192, '表參道'], roppongi: [188, 212, '六本木'], gyoen: [140, 150, '新宿御苑'],
       hibiya: [248, 186, '日比谷'], korakuen: [212, 116, '後樂園・巨蛋'], yanaka: [222, 40, '谷中']
     };
     const LOOP = ['ikebukuro', 'nippori', 'ueno', 'akihabara', 'tokyo', 'yurakucho', 'shimbashi', 'shinagawa', 'ebisu', 'shibuya', 'harajuku', 'shinjuku'];
@@ -2551,6 +2551,36 @@
       }
       return { stops: known.map(n => n.key), times, legs, unknown: seq.filter(n => !n.key).map(n => n.name) };
     }
+    // ---- 小地圖站名的自動避讓 ----
+    const labelW = (text, size) => [...text].reduce((w, ch) => w + (ch.charCodeAt(0) > 0x2E7F ? size : size * .6), 0);
+    // 線段落在方框裡的長度（Liang–Barsky 裁切）
+    function clipLen(x1, y1, x2, y2, b) {
+      const dx = x2 - x1, dy = y2 - y1;
+      let t0 = 0, t1 = 1;
+      for (const [p, q] of [[-dx, x1 - b[0]], [dx, b[2] - x1], [-dy, y1 - b[1]], [dy, b[3] - y1]]) {
+        if (p === 0) { if (q < 0) return 0; continue; }
+        const r = q / p;
+        if (p < 0) { if (r > t1) return 0; if (r > t0) t0 = r; } else { if (r < t0) return 0; if (r < t1) t1 = r; }
+      }
+      return Math.hypot(dx, dy) * (t1 - t0);
+    }
+    // 依序試：右、左、下、上、右上、右下、左上、左下，挑重疊最少的；選定後把位置佔起來
+    function labelSpot(x, y, text, size, gap, taken, lines) {
+      const w = labelW(text, size), d = gap * .75, e = gap * .6;
+      const cands = [['start', x + gap, y + 4], ['end', x - gap, y + 4], ['middle', x, y + gap + size * .85], ['middle', x, y - gap - 2],
+        ['start', x + d, y - e], ['start', x + d, y + e + size * .75], ['end', x - d, y - e], ['end', x - d, y + e + size * .75]];
+      let best = null;
+      cands.forEach(([anchor, ax, by], i) => {
+        const x1 = (anchor === 'start' ? ax : anchor === 'end' ? ax - w : ax - w / 2) - 1.5;
+        const box = [x1, by - size * .9 - 1.5, x1 + w + 3, by + size * .25 + 1.5];
+        let cost = i * 2 + 60 * (Math.max(0, 4 - box[0]) + Math.max(0, box[2] - 396) + Math.max(0, 4 - box[1]) + Math.max(0, box[3] - 286));
+        for (const t of taken) cost += Math.max(0, Math.min(box[2], t.box[2]) - Math.max(box[0], t.box[0])) * Math.max(0, Math.min(box[3], t.box[3]) - Math.max(box[1], t.box[1])) * t.w;
+        for (const l of lines) cost += clipLen(l.seg[0], l.seg[1], l.seg[2], l.seg[3], box) * l.w;
+        if (!best || cost < best.cost) best = { anchor, x: +ax.toFixed(1), y: +by.toFixed(1), box, cost };
+      });
+      taken.push({ box: best.box, w: 1 });
+      return best;
+    }
     function routeMapSVG(day, stops, times) {
       const P = k => ST[k];
       const line = (keys, col, w, op) => `<polyline points="${keys.map(k => P(k)[0] + ',' + P(k)[1]).join(' ')}" fill="none" stroke="${col}" stroke-width="${w}" stroke-linejoin="round" stroke-linecap="round" opacity="${op}"/>`;
@@ -2571,21 +2601,31 @@
       b += line([...LOOP, LOOP[0]], L_COL.yamanote, 6, .85);
       for (const k of ['ikebukuro', 'ueno', 'tokyo', 'shinagawa', 'shibuya', 'shinjuku']) {
         const [x, y, n] = P(k);
-        b += `<circle cx="${x}" cy="${y}" r="4" stroke="#4E8A1E" stroke-width="2" style="fill:rgb(var(--tk-card))"/>` + (stops.includes(k) ? '' : label(x > 200 ? x + 8 : x - 8, y + 4, n, x > 200 ? 'start' : 'end', 10, 400));
+        b += `<circle cx="${x}" cy="${y}" r="4" stroke="#4E8A1E" stroke-width="2" style="fill:rgb(var(--tk-card))"/>`;
       }
       const pts = stops.map(P);
       if (pts.length > 1) b += `<polyline points="${pts.map(q => q[0] + ',' + q[1]).join(' ')}" fill="none" stroke-width="3.5" stroke-dasharray="7 5" stroke-linejoin="round" stroke-linecap="round" class="route-dash" style="stroke:rgb(var(--tk-maple))"/>`;
-      const seen = new Set();
-      let n = 0;
-      stops.forEach(k => {
-        if (k === 'nippori' || seen.has(k)) return;
-        seen.add(k); n++;
-        const [x, y, name] = P(k);
-        const right = x < 300;
-        b += `<circle cx="${x}" cy="${y}" r="10" style="fill:rgb(var(--tk-maple))"/><text x="${x}" y="${y + 4}" font-size="11" font-weight="700" text-anchor="middle" fill="#fff">${n}</text>` + label(right ? x + 14 : x - 14, y + 4, name, right ? 'start' : 'end', 11, 700);
-      });
+      // 站名自動避讓：先把圓點、時間標籤的位置佔起來，再替每個站名挑一個不壓到別人、也盡量不壓到今天路線的位置
       const [hx, hy] = P('nippori');
-      b += `<circle cx="${hx}" cy="${hy}" r="11" style="fill:rgb(var(--tk-night))"/><text x="${hx}" y="${hy + 4}" font-size="10" text-anchor="middle">🏨</text>` + label(hx + 15, hy - 6, '日暮里（飯店）', 'start', 11, 700);
+      const uniq = [...new Set(stops)].filter(k => k !== 'nippori');
+      const loopSt = ['ikebukuro', 'ueno', 'tokyo', 'shinagawa', 'shibuya', 'shinjuku'].filter(k => !stops.includes(k));
+      const taken = [{ box: [8, 8, 98, 28], w: 1 }, { box: [hx - 11, hy - 11, hx + 11, hy + 11], w: 1 }];
+      uniq.forEach(k => { const [x, y] = P(k); taken.push({ box: [x - 9, y - 9, x + 9, y + 9], w: 1 }); });
+      // 小電車停站時會待在圓點正上方，站名盡量不要放那裡
+      if (pts.length > 1) ['nippori', ...uniq].forEach(k => { const [x, y] = P(k); taken.push({ box: [x - 20, y - 33, x + 20, y - 7], w: .35 }); });
+      loopSt.forEach(k => { const [x, y] = P(k); taken.push({ box: [x - 5, y - 5, x + 5, y + 5], w: .6 }); });
+      const lines = [];
+      for (let i = 1; i < pts.length; i++) lines.push({ seg: [pts[i - 1][0], pts[i - 1][1], pts[i][0], pts[i][1]], w: 4 });
+      LOOP.forEach((k, i) => { const p = P(k), q = P(LOOP[(i + 1) % LOOP.length]); lines.push({ seg: [p[0], p[1], q[0], q[1]], w: 1.5 }); });
+      const put = (x, y, text, size, weight, gap) => { const s = labelSpot(x, y, text, size, gap, taken, lines); return label(s.x, s.y, text, s.anchor, size, weight); };
+      let names = put(hx, hy, '日暮里（飯店）', 11, 700, 15);
+      uniq.forEach((k, i) => {
+        const [x, y, name] = P(k);
+        b += `<circle cx="${x}" cy="${y}" r="10" style="fill:rgb(var(--tk-maple))"/><text x="${x}" y="${y + 4}" font-size="11" font-weight="700" text-anchor="middle" fill="#fff">${i + 1}</text>`;
+        names += put(x, y, name, 11, 700, 14);
+      });
+      loopSt.forEach(k => { const [x, y, name] = P(k); names += put(x, y, name, 10, 400, 8); });
+      b += `<circle cx="${hx}" cy="${hy}" r="11" style="fill:rgb(var(--tk-night))"/><text x="${hx}" y="${hy + 4}" font-size="10" text-anchor="middle">🏨</text>` + names;
       b += `<g><rect x="8" y="8" width="90" height="20" rx="10" opacity=".8" style="fill:rgb(var(--tk-card))"/><text id="skyClock" x="53" y="22" font-size="10.5" font-weight="700" text-anchor="middle" style="fill:rgb(var(--tk-ink))"></text></g>`;
       if (pts.length > 1) {
         // 小電車：車身色帶跟著那一段搭的路線變色；步行的區間換成走路的小人
