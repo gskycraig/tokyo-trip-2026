@@ -144,6 +144,25 @@
     .fall { animation: fall linear infinite; }
     @keyframes fall { from { transform: translate(0, -60px); } to { transform: translate(40px, 380px); } }
     @media (prefers-reduced-motion: reduce) { .tw, .fall { animation: none; } }
+    /* 逛街、買布時在旁邊等的泓碩：抖腳、左右張望、輪流問兩句話 */
+    .hs-head { transform-origin: 32px 40px; animation: hsHead 2.6s ease-in-out infinite; }
+    @keyframes hsHead { 0%, 100% { transform: rotate(-5deg); } 50% { transform: rotate(5deg); } }
+    .hs-foot { transform-origin: 34.5px 74px; animation: hsTap .38s ease-in-out infinite alternate; }
+    @keyframes hsTap { from { transform: rotate(0); } to { transform: rotate(-24deg); } }
+    .hs-mad { transform-origin: 53px 12px; animation: hsMad 1s ease-in-out infinite; }
+    @keyframes hsMad { 0%, 100% { transform: scale(.7); opacity: .55; } 50% { transform: scale(1.15); opacity: 1; } }
+    .hs-happy .hs-boy { animation: hsJump .45s ease-out infinite alternate; }
+    @keyframes hsJump { from { transform: translateY(0); } to { transform: translateY(-6px); } }
+    .hs-bubble { position: relative; display: inline-grid; padding: 6px 12px; border-radius: 16px; background: rgb(var(--tk-goldSoft)); border: 1.5px solid rgb(var(--tk-gold)); color: rgb(var(--tk-ink)); font-size: 13px; font-weight: 800; line-height: 1.3; transform-origin: left bottom; animation: hsPop 5s ease-in-out infinite; }
+    .hs-bubble::before { content: ''; position: absolute; left: -6px; bottom: 9px; width: 10px; height: 10px; background: inherit; border-left: 1.5px solid rgb(var(--tk-gold)); border-bottom: 1.5px solid rgb(var(--tk-gold)); transform: rotate(45deg); }
+    .hs-q1, .hs-q2 { grid-area: 1 / 1; white-space: nowrap; }
+    .hs-q1 { animation: hsQ1 5s step-end infinite; }
+    .hs-q2 { opacity: 0; animation: hsQ2 5s step-end infinite; }
+    @keyframes hsQ1 { 0% { opacity: 1; } 50% { opacity: 0; } }
+    @keyframes hsQ2 { 0% { opacity: 0; } 50% { opacity: 1; } }
+    @keyframes hsPop { 0%, 50%, 100% { transform: scale(.7) rotate(-5deg); } 7%, 57% { transform: scale(1.1) rotate(2deg); } 12%, 46%, 62%, 96% { transform: scale(1) rotate(0); } }
+    .hs-happy .hs-bubble { animation: none; }
+    @media (prefers-reduced-motion: reduce) { .hs-head, .hs-foot, .hs-mad, .hs-happy .hs-boy, .hs-bubble, .hs-q1, .hs-q2 { animation: none; } .hs-bubble { display: inline-block; } .hs-q2 { opacity: 1; } }
     .timeline-line { background: repeating-linear-gradient(to bottom, rgb(var(--tk-dash)) 0 6px, transparent 6px 11px); }
     input[type="checkbox"].tick { accent-color: rgb(var(--tk-night)); }
   </style>
@@ -2198,6 +2217,44 @@
         </div>`;
     }
 
+    // ---- 逛街、買布的行程旁邊，等到不耐煩的泓碩；打勾完成後會變開心 ----
+    const SHOP_RE = /逛街|逛布|買布|布店|購物|纖維街|TOMATO|LaLaport|Outlet|shopping/i;
+    const isShopping = ev => ev.type === '🧵 逛布' || ev.type === '🛍️ 逛街' || SHOP_RE.test(ev.title || '');
+    function hongshuoHtml(done) {
+      const O = '#5A3E36', SKIN = '#FFDFC4';
+      const pen = `fill="none" stroke="${O}" stroke-linecap="round" stroke-linejoin="round"`;
+      const arms = done ? 'M21,46L11,35M43,46L53,35' : 'M21,47L41,54M43,47L23,54';
+      const face = done
+        ? `<path d="M21.5,27q3,-4.5 6,0M36.5,27q3,-4.5 6,0" ${pen} stroke-width="1.6"/><path d="M26.5,31.5q5.5,7 11,0z" fill="#C4472F" stroke="${O}" stroke-width="1.2" stroke-linejoin="round"/>`
+        : `<ellipse cx="25" cy="27" rx="2.1" ry="2.5" fill="#2B2320"/><ellipse cx="39" cy="27" rx="2.1" ry="2.5" fill="#2B2320"/>
+           <rect x="22" y="23.4" width="6" height="2.2" fill="${SKIN}"/><rect x="36" y="23.4" width="6" height="2.2" fill="${SKIN}"/>
+           <path d="M22,25.4h6M36,25.4h6" ${pen} stroke-width="1.4"/><path d="M20.5,19.5l7.5,2.6M43.5,19.5l-7.5,2.6" ${pen} stroke-width="1.7"/>
+           <path d="M28,35q4,-3.2 8,0" ${pen} stroke-width="1.5"/>`;
+      return `
+        <div class="hs ${done ? 'hs-happy' : ''} mt-3 flex items-end gap-2.5 select-none" role="img" aria-label="${done ? '泓碩開心地說：耶！走吧' : '泓碩不耐煩地問：好了嗎？要走了嗎？'}">
+          <div class="shrink-0 text-center">
+            <svg class="hs-boy block" width="54" height="64" viewBox="0 0 64 76" aria-hidden="true">
+              <ellipse cx="32" cy="74.6" rx="15" ry="1.6" fill="#000" opacity=".12"/>
+              <rect x="24" y="64" width="5.5" height="8" rx="2" fill="${SKIN}" stroke="${O}" stroke-width="1.1"/><rect x="34.5" y="64" width="5.5" height="8" rx="2" fill="${SKIN}" stroke="${O}" stroke-width="1.1"/>
+              <ellipse cx="25.5" cy="72.8" rx="5.2" ry="2.5" fill="#E05A47" stroke="${O}" stroke-width="1.1"/>
+              <g class="hs-foot"><ellipse cx="38.8" cy="72.8" rx="5.2" ry="2.5" fill="#E05A47" stroke="${O}" stroke-width="1.1"/></g>
+              <path d="M21.5,57h21l1,9.5h-9.5l-2,-4l-2,4h-9.5z" fill="#3D4A6B" stroke="${O}" stroke-width="1.1" stroke-linejoin="round"/>
+              <path d="M21,43Q32,39 43,43L44.5,59Q32,61.5 19.5,59Z" fill="#5B9BE6" stroke="${O}" stroke-width="1.2" stroke-linejoin="round"/>
+              <path d="${arms}" ${pen} stroke-width="7"/><path d="${arms}" fill="none" stroke="${SKIN}" stroke-width="4.6" stroke-linecap="round"/>
+              <g class="hs-head">
+                <circle cx="15.5" cy="27" r="3" fill="${SKIN}" stroke="${O}" stroke-width="1.1"/><circle cx="48.5" cy="27" r="3" fill="${SKIN}" stroke="${O}" stroke-width="1.1"/>
+                <circle cx="32" cy="24" r="17" fill="${SKIN}" stroke="${O}" stroke-width="1.3"/>
+                <path d="M15.2,23Q13,6.5 32,6.5Q51,6.5 48.8,23Q45,15.5 40,17Q37,11.5 31,16.5Q25,12.5 21,17.5Q17,18 15.2,23Z" fill="#3A2A22"/><path d="M31,7.5q1,-5.5 6.5,-4.5q-3.5,1 -3,4.5z" fill="#3A2A22"/>
+                <ellipse cx="20.5" cy="32" rx="2.6" ry="1.6" fill="#FF9DB0" opacity=".8"/><ellipse cx="43.5" cy="32" rx="2.6" ry="1.6" fill="#FF9DB0" opacity=".8"/>
+                ${face}
+              </g>
+              ${done ? '' : `<path class="hs-mad" d="M50,8q2.6,1 2,3.6M56,8q-2.6,1 -2,3.6M50,16q2.6,-1 2,-3.6M56,16q-2.6,-1 -2,-3.6" fill="none" stroke="#E0392B" stroke-width="1.7" stroke-linecap="round"/>`}
+            </svg>
+            <div class="text-[10px] font-bold text-tk-muted leading-none mt-0.5">泓碩</div>
+          </div>
+          <div class="hs-bubble mb-7">${done ? '<span>耶！走吧～</span>' : '<span class="hs-q1">好了嗎？</span><span class="hs-q2">要走了嗎？</span>'}</div>
+        </div>`;
+    }
     function renderDayContent() {
       const d = itinerary.find(x => x.day === currentDay);
       const done = d.events.filter(e => e.done).length;
@@ -2273,6 +2330,7 @@
                   ${route}
                   ${ev.note ? `<p class="text-xs text-tk-muted mt-2 leading-relaxed">${esc(ev.note)}</p>` : ''}
                   ${tags}${alt}
+                  ${isShopping(ev) ? hongshuoHtml(ev.done) : ''}
                   <div class="flex flex-wrap gap-2 mt-3">
                     <a href="${mapUrl(ev.map || ev.title)}" target="_blank" rel="noopener" class="px-2.5 py-1.5 rounded-lg bg-tk-night text-white text-[11px] font-bold hover:bg-tk-nightSoft transition">📍 導航</a>
                     ${links}${del}
