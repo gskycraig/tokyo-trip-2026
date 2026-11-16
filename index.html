@@ -753,7 +753,7 @@
     <div class="bg-white rounded-2xl max-w-md w-full p-5 space-y-4" onclick="event.stopPropagation()">
       <h3 class="font-serif text-lg font-bold text-tk-night">🔑 Gemini API 設定</h3>
       <p class="text-xs text-tk-muted leading-relaxed">輸入 Google Gemini API Key 即可啟用真實 AI 管家（金鑰只存在你這台裝置瀏覽器的 localStorage）。未設定時使用內建離線回覆，會直接從行程資料整理答案。</p>
-      <input id="geminiApiKeyInput" type="password" placeholder="AIzaSy..." class="w-full px-3.5 py-2.5 rounded-xl bg-tk-bg border border-tk-line text-sm" />
+      <input id="geminiApiKeyInput" type="password" placeholder="貼上整串金鑰" class="w-full px-3.5 py-2.5 rounded-xl bg-tk-bg border border-tk-line text-sm" />
       <div class="flex justify-end gap-2">
         <button onclick="closeModal('apiKeyModal')" class="px-4 py-2 rounded-xl text-xs font-bold text-tk-muted">取消</button>
         <button onclick="saveApiKey()" class="px-4 py-2 rounded-xl bg-tk-night text-white text-xs font-bold">儲存設定</button>
@@ -4597,11 +4597,12 @@
       if (!res.ok) throw geminiErr(res.status, data);
       return pickGeminiModels(data.models);
     }
-    async function geminiCall(model, text) {
+    async function geminiCall(model, text, signal) {
       const res = await fetch(`${GEMINI}models/${encodeURIComponent(model)}:generateContent?key=${encodeURIComponent(geminiApiKey)}`, {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ contents: [{ role: 'user', parts: [{ text }] }] })
+        body: JSON.stringify({ contents: [{ role: 'user', parts: [{ text }] }] }),
+        signal
       });
       const data = await res.json().catch(() => ({}));
       if (!res.ok) return { status: res.status, err: geminiErr(res.status, data) };
@@ -4610,33 +4611,59 @@
       const why = (data.promptFeedback && data.promptFeedback.blockReason) || (data.candidates && data.candidates[0] && data.candidates[0].finishReason) || '';
       return { status: 200, err: Object.assign(new Error('沒有回覆內容' + (why ? '（' + why + '）' : '')), { status: 200, blocked: true }) };
     }
+    // 要試的模型順序：上次成功的 → 最新的正式版 flash → 輕量版（通常最快）→ 次新的 flash → 預覽版
+    function geminiPlan(list, saved) {
+      const flash = list.filter(n => /^gemini-\d+(\.\d+)?-flash$/.test(n));
+      const lite = list.includes('gemini-flash-lite-latest') ? 'gemini-flash-lite-latest' : list.find(n => /flash-lite$/.test(n));
+      const preview = list.find(n => /flash-preview/.test(n));
+      return [...new Set([list.includes(saved) ? saved : '', flash[0], lite, flash[1], preview, ...list])].filter(Boolean).slice(0, 5);
+    }
+    // 錯開起跑：先問第一個，5 秒沒結果就同時問下一個；有模型失敗也立刻換下一個。誰先回覆就用誰，其餘取消
+    function geminiRace(plan, text) {
+      return new Promise((resolve, reject) => {
+        const ctrls = [];
+        let next = 0, running = 0, done = false, lastErr = null, stagger = null, deadline = null;
+        const finish = (fn, v) => {
+          if (done) return;
+          done = true; clearTimeout(stagger); clearTimeout(deadline);
+          ctrls.forEach(c => { try { c.abort(); } catch (e) { } });
+          fn(v);
+        };
+        const failed = err => {
+          running--;
+          if (done) return;
+          if (err && (err.status || !lastErr)) lastErr = err;
+          if (next < plan.length) start(); else if (!running) finish(reject, lastErr || new Error('沒有可用的模型'));
+        };
+        const start = () => {
+          if (done || next >= plan.length) return;
+          const model = plan[next++], c = new AbortController();
+          ctrls.push(c); running++;
+          clearTimeout(stagger); stagger = setTimeout(start, 5000);
+          geminiCall(model, text, c.signal).then(r => r.reply ? finish(resolve, { model, reply: r.reply }) : failed(r.err), failed);
+        };
+        deadline = setTimeout(() => finish(reject, Object.assign(new Error('等了 45 秒都沒有模型回覆'), { timeout: true })), 45000);
+        start();
+      });
+    }
     async function geminiAsk(text) {
-      const retry = st => [400, 403, 404, 429].includes(st);   // 這個模型不能用（下架、沒額度、沒權限）就換下一個
-      const saved = store.get(AI_MODEL_KEY, '');
-      let last = null;
-      if (saved) {
-        last = await geminiCall(saved, text);
-        if (last.reply) return last.reply;
-        if (!retry(last.status)) throw last.err;
-      }
       if (!aiModels) aiModels = await geminiListModels();   // 金鑰本身有問題會在這裡丟出來
-      for (const m of aiModels.filter(x => x !== saved).slice(0, 4)) {
-        last = await geminiCall(m, text);
-        if (last.reply) { store.put(AI_MODEL_KEY, m); return last.reply; }
-        if (!retry(last.status)) break;
-      }
-      throw last ? last.err : new Error('這把金鑰目前沒有可用的 Gemini 模型');
+      if (!aiModels.length) throw new Error('這把金鑰目前沒有可用的 Gemini 模型');
+      const r = await geminiRace(geminiPlan(aiModels, store.get(AI_MODEL_KEY, '')), text);
+      store.put(AI_MODEL_KEY, r.model);
+      return r.reply;
     }
     function geminiErrorText(err) {
       const msg = String((err && err.message) || err || ''), st = err && err.status;
       const reason = JSON.stringify((err && err.api && err.api.details) || '');
       let hint;
-      if (/API_KEY_INVALID/.test(reason) || /API key not valid/i.test(msg)) hint = '金鑰不正確。請到右上角「API」重新貼一次：整串以 AIza 開頭，前後不要有空白或換行。';
+      if (/API_KEY_INVALID/.test(reason) || /API key not valid/i.test(msg)) hint = '金鑰不正確。請到右上角「API」重新貼一次：要整串完整貼上，前後不要有空白或換行。';
       else if (/leaked|expired|revoked/i.test(msg)) hint = '這把金鑰已被 Google 停用（可能曾經外流或過期），請到 Google AI Studio 重新建立一把。';
       else if (st === 403) hint = '這把金鑰沒有使用 Gemini 的權限。常見原因：金鑰不是在 Google AI Studio 建立的、金鑰設了使用限制，或所在地區不支援。';
       else if (st === 429) hint = '已超過免費額度或次數上限，請等一兩分鐘再問；如果一直出現，代表今天的額度用完了。';
       else if (st === 404) hint = 'Google 找不到可用的模型，請稍後再試。';
       else if (st >= 500) hint = 'Google 那邊暫時忙線，請稍後再問一次。';
+      else if (err && err.timeout) hint = 'Google 的模型太久沒有回應，請再問一次。';
       else if (err && err.blocked) hint = 'Google 沒有給出回覆，可能是問題被安全過濾擋下，換個問法試試。';
       else if (!st) hint = '連不上 Google。請確認網路；如果是從 claude.ai 的分享連結開的，那裡會擋對外連線，請改用 GitHub 的正式網址。';
       else hint = '無法取得 AI 回覆。';
