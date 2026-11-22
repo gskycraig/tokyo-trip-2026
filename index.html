@@ -3,8 +3,8 @@
 <head>
   <meta charset="UTF-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover" />
-  <meta name="theme-color" content="#1B2440" />
-  <title>東京日暮里 7 天自由行</title>
+  <meta name="theme-color" content="#1D2F55" />
+  <title>東京日暮里 8 天自由行</title>
   <meta name="robots" content="noindex, nofollow" />
   <script src="https://cdn.tailwindcss.com/3.4.17"></script>
   <link rel="manifest" href="manifest.webmanifest">
@@ -14,7 +14,7 @@
   <meta name="apple-mobile-web-app-title" content="東京行程">
   <link rel="preconnect" href="https://fonts.googleapis.com">
   <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
-  <link href="https://fonts.googleapis.com/css2?family=Noto+Sans+JP:wght@500;700&family=Noto+Sans+TC:wght@400;500;700;900&family=Noto+Serif+TC:wght@600;700;900&display=swap" rel="stylesheet">
+  <link href="https://fonts.googleapis.com/css2?family=Barlow+Semi+Condensed:wght@500;600;700&family=Noto+Sans+JP:wght@500;700&family=Noto+Sans+TC:wght@400;500;700;900&display=swap" rel="stylesheet">
   <script>
     tailwind.config = {
       theme: {
@@ -38,7 +38,8 @@
           },
           fontFamily: {
             sans: ['"Noto Sans TC"', 'sans-serif'],
-            serif: ['"Noto Serif TC"', 'serif'],
+            serif: ['"Noto Sans TC"', 'sans-serif'],
+            num: ['"Barlow Semi Condensed"', '"Noto Sans TC"', 'sans-serif'],
             jp: ['"Noto Sans JP"', '"Noto Sans TC"', 'sans-serif']
           }
         }
@@ -46,18 +47,19 @@
     }
   </script>
   <style>
-    /* 版面：單欄卡片流；色票以 RGB 變數定義，夜間模式只換變數 */
+    /* 版面：「日暮里線」——站名牌首頁、八天是路線圖上的八站、每天的行程沿軌道停靠
+       色票（RGB 變數，夜間模式只換變數）：藍染靛 night、銀杏黃 gold、紅葉朱 maple、月台白 bg、墨 ink */
     :root {
-      --tk-bg: 247 244 238; --tk-card: 255 255 255; --tk-line: 232 225 212; --tk-sand: 241 235 223;
-      --tk-night: 27 36 64; --tk-nightSoft: 45 58 102; --tk-gold: 217 162 27; --tk-goldSoft: 251 240 207;
-      --tk-maple: 196 71 47; --tk-mapleSoft: 248 227 220; --tk-fabric: 180 80 122; --tk-ink: 35 32 28; --tk-muted: 121 114 106;
-      --tk-heading: 27 36 64; --tk-dash: 216 207 191;
+      --tk-bg: 239 241 240; --tk-card: 255 255 255; --tk-line: 216 220 223; --tk-sand: 228 232 233;
+      --tk-night: 29 47 85; --tk-nightSoft: 43 66 114; --tk-gold: 237 178 12; --tk-goldSoft: 252 241 199;
+      --tk-maple: 196 54 30; --tk-mapleSoft: 249 225 218; --tk-fabric: 180 80 122; --tk-ink: 31 35 43; --tk-muted: 100 106 116;
+      --tk-heading: 29 47 85; --tk-dash: 196 202 208; --tk-plate: 255 255 255;
     }
     html.dark {
-      --tk-bg: 17 19 27; --tk-card: 28 31 43; --tk-line: 52 57 74; --tk-sand: 38 42 58;
-      --tk-night: 47 62 118; --tk-nightSoft: 63 80 146; --tk-gold: 226 177 58; --tk-goldSoft: 58 49 26;
-      --tk-maple: 236 118 92; --tk-mapleSoft: 64 36 30; --tk-fabric: 214 112 156; --tk-ink: 233 230 224; --tk-muted: 163 158 150;
-      --tk-heading: 226 229 245; --tk-dash: 70 75 92;
+      --tk-bg: 14 20 34; --tk-card: 23 31 50; --tk-line: 44 54 78; --tk-sand: 31 40 62;
+      --tk-night: 52 76 132; --tk-nightSoft: 68 94 156; --tk-gold: 240 186 40; --tk-goldSoft: 62 50 18;
+      --tk-maple: 238 110 84; --tk-mapleSoft: 70 32 26; --tk-fabric: 214 112 156; --tk-ink: 232 234 238; --tk-muted: 152 160 174;
+      --tk-heading: 226 232 248; --tk-dash: 60 70 96; --tk-plate: 236 239 242;
       color-scheme: dark;
     }
     body {
@@ -67,7 +69,7 @@
     }
     /* 夜間模式：固定色的 Tailwind 類別改走變數 */
     html.dark .text-tk-night { color: rgb(var(--tk-heading)); }
-    html.dark .bg-tk-gold.text-tk-night, html.dark .bg-tk-gold .text-tk-night { color: #1B2440; }
+    html.dark .bg-tk-gold.text-tk-night, html.dark .bg-tk-gold .text-tk-night { color: #1D2F55; }
     html.dark .text-tk-goldSoft { color: #FBF0CF; }
     html.dark .bg-white { background-color: rgb(var(--tk-card)); }
     html.dark .bg-white\/85, html.dark .bg-white\/90 { background-color: rgb(var(--tk-card) / .88); }
@@ -170,42 +172,145 @@
     @media (prefers-reduced-motion: reduce) { .hs-sway, .hs-doll, .hs-mad, .hs-happy .hs-sway, .hs-happy .hs-doll, .hs-bubble, .hs-q1, .hs-q2 { animation: none; } .hs-bubble { display: inline-block; } .hs-q2 { opacity: 1; } }
     .timeline-line { background: repeating-linear-gradient(to bottom, rgb(var(--tk-dash)) 0 6px, transparent 6px 11px); }
     input[type="checkbox"].tick { accent-color: rgb(var(--tk-night)); }
+
+    /* ================= 日暮里線 設計層 ================= */
+    body { font-feature-settings: "palt" 1; }
+    .font-num, .num { font-family: "Barlow Semi Condensed", "Noto Sans TC", sans-serif; font-variant-numeric: tabular-nums; letter-spacing: .01em; }
+    .font-serif { letter-spacing: .03em; }
+    h2.font-serif, h3.font-serif { font-weight: 900; }
+    /* 圓角分層：站牌 4px、內容卡 14px、膠囊按鈕維持全圓；不用浮影，靠邊線分層 */
+    html .rounded-2xl { border-radius: 14px; }
+    html .rounded-3xl { border-radius: 16px; }
+    html .shadow-sm { box-shadow: none; }
+    .fade-in, .tab-panel:not(.hidden) { animation: none; }
+    :focus-visible { outline: 2.5px solid rgb(var(--tk-gold)); outline-offset: 2px; }
+
+    /* 站名牌（首頁） */
+    .eki-photo { position: relative; height: 300px; overflow: hidden; background: rgb(var(--tk-night)); }
+    @media (min-width: 768px) { .eki-photo { height: 380px; } }
+    .eki { position: relative; margin-top: -92px; z-index: 2; }
+    .eki-plate { background: rgb(var(--tk-plate)); color: #1F232B; border-radius: 4px; overflow: hidden; box-shadow: 0 1px 0 rgb(0 0 0 / .06), 0 18px 40px -24px rgb(14 20 34 / .55); }
+    .eki-body { display: grid; grid-template-columns: auto 1fr; gap: 14px 18px; align-items: center; padding: 18px 18px 14px; }
+    @media (min-width: 768px) { .eki-body { grid-template-columns: auto 1fr auto; padding: 24px 28px 18px; } }
+    .eki-no { display: inline-flex; flex-direction: column; align-items: center; justify-content: center; width: 52px; height: 52px; border: 4px solid rgb(var(--tk-gold)); border-radius: 9px; background: #fff; color: #1F232B; font-family: "Barlow Semi Condensed", sans-serif; line-height: .9; }
+    .eki-no small { font-size: 12px; font-weight: 700; letter-spacing: .04em; }
+    .eki-no b { font-size: 22px; font-weight: 700; }
+    @media (min-width: 768px) { .eki-no { width: 64px; height: 64px; } .eki-no b { font-size: 28px; } .eki-no small { font-size: 14px; } }
+    .eki-kana { font-family: "Noto Sans JP", "Noto Sans TC", sans-serif; font-size: 13px; font-weight: 700; letter-spacing: .5em; color: #4A505C; }
+    .eki-name { font-size: 52px; line-height: 1; font-weight: 900; letter-spacing: .14em; margin: 4px 0 2px; color: #1F232B; }
+    @media (min-width: 768px) { .eki-name { font-size: 76px; } }
+    .eki-roma { font-family: "Barlow Semi Condensed", sans-serif; font-size: 18px; font-weight: 600; letter-spacing: .08em; color: #4A505C; }
+    .eki-roma span { color: #1F232B; }
+    .eki-meta { grid-column: 1 / -1; font-size: 12.5px; line-height: 1.7; color: #4A505C; border-top: 1px solid #DDE1E4; padding-top: 10px; }
+    @media (min-width: 768px) { .eki-meta { grid-column: auto; border-top: 0; padding-top: 0; text-align: right; } }
+    .eki-meta b { color: #1F232B; font-weight: 700; }
+    .eki-band { background: #1D2F55; color: #fff; display: grid; grid-template-columns: 1fr 1fr; align-items: center; gap: 8px 12px; padding: 10px 18px; font-size: 13px; }
+    @media (min-width: 768px) { .eki-band { grid-template-columns: auto 1fr auto; padding: 11px 28px; } }
+    .eki-band .end { text-align: right; }
+    .eki-band .dir { font-weight: 700; white-space: nowrap; }
+    .eki-band .dir small { display: block; font-weight: 500; font-size: 11px; color: rgb(255 255 255 / .7); }
+    .eki-band .tri { color: #EDB20C; font-size: 10px; }
+    #countdownBox { grid-column: 1 / -1; grid-row: 2; justify-content: center; border-top: 1px solid rgb(255 255 255 / .14); padding-top: 8px; }
+    @media (min-width: 768px) { #countdownBox { grid-column: 2; grid-row: 1; border-top: 0; padding-top: 0; } }
+    .cd { padding: 0 2px; border: 0; border-radius: 0; background: none; -webkit-backdrop-filter: none; backdrop-filter: none; font-family: "Barlow Semi Condensed", sans-serif; }
+    .cd b { font-size: 1.35rem; font-weight: 700; color: #EDB20C; }
+    .cd i { font-size: .7rem; opacity: .8; margin-left: 1px; }
+    .eki-lit { animation: ekiLit 1.1s cubic-bezier(.2, .8, .2, 1) .15s both; }
+    @keyframes ekiLit { 0% { opacity: 0; transform: translateY(14px); } 55% { opacity: 1; } 70% { filter: brightness(1.25); } 100% { opacity: 1; transform: none; filter: none; } }
+    @media (prefers-reduced-motion: reduce) { .eki-lit { animation: none; } }
+
+    /* 頂部頁籤：像車廂上方的路線指示，選中的站下方亮一條銀杏黃 */
+    html .tab-btn { background: transparent; border: 0; border-radius: 0; color: rgb(var(--tk-muted)); box-shadow: inset 0 -3px 0 transparent; padding-left: 4px; padding-right: 4px; margin-right: 14px; }
+    .tab-btn:hover { background: transparent; color: rgb(var(--tk-ink)); }
+    .tab-btn[aria-selected="true"] { background: transparent; color: rgb(var(--tk-heading)); box-shadow: inset 0 -3px 0 rgb(var(--tk-gold)); }
+    .mob-tab-btn[aria-selected="true"] .mob-ico { background: rgb(var(--tk-night)); }
+    .chip-filter[aria-pressed="true"] { background: rgb(var(--tk-night)); border-color: rgb(var(--tk-night)); }
+
+    /* 八天路線圖 */
+    .route-strip { display: flex; overflow-x: auto; padding: 6px 0 4px; }
+    .day-stop { position: relative; flex: 1 0 84px; display: flex; flex-direction: column; align-items: center; gap: 2px; padding: 0 2px 6px; background: none; border: 0; color: rgb(var(--tk-ink)); cursor: pointer; border-radius: 10px; }
+    .day-stop::before { content: ''; position: absolute; top: 24px; left: 0; right: 0; height: 5px; background: rgb(var(--tk-night)); }
+    .day-stop:first-child::before { left: 50%; }
+    .day-stop:last-child::before { right: 50%; }
+    .day-stop .eki-no { position: relative; width: 46px; height: 46px; border-width: 3.5px; border-color: rgb(var(--tk-night)); background: rgb(var(--tk-card)); color: rgb(var(--tk-ink)); transition: transform .2s ease, background-color .2s ease; }
+    .day-stop .eki-no small { font-size: 10px; }
+    .day-stop .eki-no b { font-size: 19px; }
+    .day-stop:hover .eki-no { transform: translateY(-2px); }
+    .day-stop[aria-pressed="true"] .eki-no { background: rgb(var(--tk-gold)); border-color: rgb(var(--tk-gold)); color: #1D2F55; transform: scale(1.12); }
+    .day-stop .stop-date { margin-top: 6px; font-family: "Barlow Semi Condensed", sans-serif; font-size: 17px; font-weight: 700; line-height: 1; }
+    .day-stop .stop-dow { font-size: 11px; color: rgb(var(--tk-muted)); }
+    .day-stop[aria-pressed="true"] .stop-date { color: rgb(var(--tk-heading)); }
+    .day-stop .stop-ico { font-size: 11px; height: 16px; letter-spacing: -1px; }
+    .day-stop .stop-flag { position: absolute; top: -4px; right: calc(50% - 34px); font-size: 10px; font-weight: 700; padding: 0 5px; border-radius: 99px; background: rgb(var(--tk-maple)); color: #fff; z-index: 1; }
+    .day-stop .stop-rain { position: absolute; top: -2px; left: calc(50% - 34px); font-size: 11px; z-index: 1; }
+
+    html.dark .day-stop::before { background: rgb(var(--tk-nightSoft)); }
+    html.dark .day-stop .eki-no { border-color: rgb(var(--tk-nightSoft)); }
+    html.dark .day-stop[aria-pressed="true"] .eki-no { border-color: rgb(var(--tk-gold)); }
+    /* 當天站牌標頭 */
+    .day-head { display: flex; align-items: flex-start; gap: 14px; }
+    .day-head .eki-no { flex-shrink: 0; width: 56px; height: 56px; }
+    .day-head .eki-no b { font-size: 24px; }
+
+    /* 時間軸：實線軌道、站點是白心色框圓 */
+    .timeline-line { background: rgb(var(--tk-night) / .85); width: 4px !important; border-radius: 2px; }
+    html.dark .timeline-line { background: rgb(var(--tk-dash)); }
+    .tl-stop { width: 16px !important; height: 16px !important; background: rgb(var(--tk-card)); border: 4px solid; box-shadow: 0 0 0 3px rgb(var(--tk-bg)); }
+    .tl-time { font-family: "Barlow Semi Condensed", "Noto Sans TC", sans-serif; font-variant-numeric: tabular-nums; }
+    .tl-time > span:first-child { font-size: 1.2rem; font-weight: 700; letter-spacing: .01em; }
+    .ev-next { box-shadow: inset 5px 0 0 rgb(var(--tk-gold)); border-color: rgb(var(--tk-gold)) !important; }
+    .glow-next { animation: none; }
+
+    /* 「今天」卡：像月台上的發車資訊板 */
+    .today-card { background: rgb(var(--tk-night)); background-image: none; animation: none; border-top: 5px solid rgb(var(--tk-gold)); border-radius: 6px 6px 14px 14px; }
+    html.dark .today-card { background: #1A2A4D; }
   </style>
 </head>
 <body class="min-h-screen pb-28 md:pb-12">
 
   <!-- ==================== HERO ==================== -->
   <canvas id="fx" aria-hidden="true"></canvas>
-  <section class="relative h-[350px] md:h-[440px] overflow-hidden bg-tk-night">
-    <div id="heroArt" class="absolute inset-0"></div>
-    <div id="heroSlides" class="absolute inset-0"></div>
-    <div class="absolute inset-0 bg-gradient-to-t from-black/75 via-black/25 to-black/10"></div>
-    <a id="heroCredit" hidden target="_blank" rel="noopener" class="absolute top-2 right-2 max-w-[70%] truncate text-[10px] px-2 py-0.5 rounded-full bg-black/45 text-white/90 hover:bg-black/70"></a>
-    <div class="absolute inset-x-0 bottom-0">
-      <div class="max-w-5xl mx-auto px-4 pb-6 text-white">
-        <div class="flex flex-wrap gap-2 text-[11px] md:text-xs font-bold">
-          <span class="px-2.5 py-1 rounded-full bg-white/20 backdrop-blur">2026/12/02（三）– 12/09（三）</span>
-          <span class="px-2.5 py-1 rounded-full bg-white/20 backdrop-blur">🏨 APA 飯店〈TKP日暮里駅前〉</span>
-          <span class="px-2.5 py-1 rounded-full bg-white/20 backdrop-blur">✈️ 星宇 JX802 / JX801</span>
+  <!-- 首頁：上半是輪播照片，下半是一面日暮里站的站名牌（JY07 是 JR 日暮里站的車站編號） -->
+  <section class="relative">
+    <div class="eki-photo">
+      <div id="heroArt" class="absolute inset-0"></div>
+      <div id="heroSlides" class="absolute inset-0"></div>
+      <div class="absolute inset-0 bg-gradient-to-b from-black/25 via-transparent to-black/45"></div>
+      <a id="heroCredit" hidden target="_blank" rel="noopener" class="absolute top-2 right-2 max-w-[70%] truncate text-[10px] px-2 py-0.5 rounded-full bg-black/45 text-white/90 hover:bg-black/70"></a>
+    </div>
+    <div class="eki max-w-5xl mx-auto px-4">
+      <div class="eki-plate eki-lit">
+        <div class="eki-body">
+          <span class="eki-no" aria-label="車站編號 JY07"><small>JY</small><b>07</b></span>
+          <div class="min-w-0">
+            <p class="eki-kana" aria-hidden="true">にっぽり</p>
+            <h1 class="eki-name">日暮里<span class="sr-only">・東京 8 天自由行</span></h1>
+            <p class="eki-roma"><span>Nippori</span>　東京 8 天自由行</p>
+          </div>
+          <p class="eki-meta">
+            晨追銀杏楓紅，午逛日暮里布街，夜賞聖誕燈海<br>
+            住 <b>APA 飯店〈TKP日暮里駅前〉</b>，日暮里站步行 2 分<br>
+            搭 <b>星宇 JX802</b> 去、<b>JX801</b> 回
+          </p>
         </div>
-        <h1 class="font-serif text-4xl md:text-6xl font-black mt-2 tracking-wide drop-shadow"><span class="shine">東京日暮里 7 天</span></h1>
-        <p class="text-sm md:text-base text-white/90 mt-1.5">晨追銀杏楓紅・午逛日暮里布街・夜賞聖誕燈海</p>
-        <div id="countdownBox" class="flex flex-wrap items-center gap-1.5 mt-3"></div>
-        <div class="flex gap-4 mt-2.5 text-xs md:text-sm">
-          <span><b class="text-tk-goldSoft text-lg md:text-xl font-black">5</b> 處賞葉</span>
-          <span><b class="text-tk-goldSoft text-lg md:text-xl font-black">7</b> 晚燈飾</span>
-          <span><b class="text-tk-goldSoft text-lg md:text-xl font-black">3</b> 次布街</span>
+        <div class="eki-band">
+          <p class="dir"><span class="tri">◀</span> 12/02（三）<small>從桃園出發</small></p>
+          <div id="countdownBox" class="flex flex-wrap items-center gap-1"></div>
+          <p class="dir end">12/09（三） <span class="tri">▶</span><small>從成田回家</small></p>
         </div>
       </div>
     </div>
   </section>
 
   <!-- ==================== STICKY HEADER ==================== -->
-  <header class="sticky top-0 z-30 glass-nav border-b border-tk-line">
+  <header class="sticky top-0 z-30 glass-nav border-b border-tk-line mt-4">
     <div class="max-w-5xl mx-auto px-4 py-2.5 flex items-center justify-between gap-3">
-      <div class="min-w-0">
+      <div class="min-w-0 flex items-center gap-2.5">
+        <span class="eki-no hidden sm:inline-flex shrink-0" style="width:34px;height:34px;border-width:3px;border-radius:7px" aria-hidden="true"><small style="font-size:9px">JY</small><b style="font-size:14px">07</b></span>
+        <div class="min-w-0">
         <p class="font-serif font-bold text-tk-night truncate">東京晨葉 × 夜燈之旅</p>
-        <p class="text-[11px] text-tk-muted truncate">12 月上旬　白天約 12–15°C・夜晚約 5°C</p>
+        <p class="text-[11px] text-tk-muted truncate">12 月上旬　白天約 12–15°C，夜晚約 5°C</p>
+        </div>
       </div>
       <div class="shrink-0 flex items-center gap-2">
         <button id="fxBtn" onclick="toggleFx()" aria-label="開關飄葉與光點特效" aria-pressed="true" class="px-2 py-1.5 text-xs rounded-lg border border-tk-line bg-white hover:bg-tk-sand transition">🍂</button>
@@ -234,7 +339,7 @@
       <div id="todayCard"></div>
       <div id="viewToggle" class="flex gap-2"></div>
       <div id="dayView" class="space-y-4">
-      <div id="daySelector" class="flex gap-2 overflow-x-auto no-scrollbar py-1 -mx-4 px-4"></div>
+      <nav id="daySelector" class="route-strip no-scrollbar -mx-4 px-4" aria-label="選擇第幾天"></nav>
       <div id="dayBanner"></div>
       <div id="dayRoute"></div>
       <div id="dayFood"></div>
@@ -724,7 +829,7 @@
   <div id="recapModal" class="hidden fixed inset-0 z-50 bg-black/50 flex items-end sm:items-center justify-center p-3" onclick="closeModal('recapModal')">
     <div class="bg-white rounded-2xl max-w-2xl w-full max-h-[88vh] overflow-y-auto p-5 space-y-4" onclick="event.stopPropagation()">
       <div class="flex items-center justify-between gap-2">
-        <h3 class="font-serif text-xl font-bold text-tk-night">📖 東京 7 天回顧</h3>
+        <h3 class="font-serif text-xl font-bold text-tk-night">📖 東京 8 天回顧</h3>
         <button onclick="closeModal('recapModal')" class="text-tk-muted text-sm font-bold px-2">關閉</button>
       </div>
       <div id="recapBody" class="space-y-4"></div>
@@ -2196,22 +2301,100 @@
         const hasFabric = d.events.some(e => e.type.includes('逛布'));
         const hasFlight = d.events.some(e => e.type.includes('航班'));
         const isToday = d.iso === todayIso;
-        const ph = DAY_PHOTOS[d.day] || {};
-        const part = d.pm || d.am;
-        const thumb = photoBox(d.pm ? ph.pm : ph.am, scene(part.scene, part.seed), { w: 330, noCredit: true });
         return `
-          <button onclick="selectDay(${d.day})" aria-pressed="${d.day === currentDay}" class="day-pill shrink-0 w-[104px] rounded-2xl text-left transition border bg-white border-tk-line hover:border-tk-night/40 overflow-hidden">
-            <div class="relative h-14 overflow-hidden">${thumb}
-              ${isToday ? '<span class="absolute top-1 right-1 text-[10px] font-bold px-1.5 rounded-full bg-tk-maple text-white">今天</span>' : ''}
-              ${rainDays[d.day] ? '<span class="absolute top-1 left-1 text-[10px] px-1 rounded-full bg-white/90">☔</span>' : ''}
-            </div>
-            <div class="px-2.5 py-1.5">
-              <div class="day-sub text-[11px] text-tk-muted">週${d.dow}・Day ${d.day}</div>
-              <div class="text-base font-black leading-tight">${d.date}</div>
-              <div class="text-xs mt-0.5 h-4">${hasFlight ? '✈️' : ''}${hasLeaf ? '🍂' : ''}${hasFabric ? '🧵' : ''}${hasLight ? '✨' : ''}</div>
-            </div>
+          <button onclick="selectDay(${d.day})" aria-pressed="${d.day === currentDay}" class="day-stop" aria-label="第 ${d.day} 天 ${d.date} 週${d.dow}${isToday ? '（今天）' : ''}">
+            <span class="eki-no"><small>D</small><b>${d.day}</b></span>
+            ${isToday ? '<span class="stop-flag">今天</span>' : ''}
+            ${rainDays[d.day] ? '<span class="stop-rain" aria-label="雨天模式">☔</span>' : ''}
+            <span class="stop-date">${d.date}</span>
+            <span class="stop-dow">週${d.dow}</span>
+            <span class="stop-ico" aria-hidden="true">${hasFlight ? '✈️' : ''}${hasLeaf ? '🍂' : ''}${hasFabric ? '🧵' : ''}${hasLight ? '✨' : ''}</span>
           </button>`;
       }).join('');
+    }
+
+    // ---- 原定行程被移除或改名時，當天的標題、橫幅、明日預告、雨天方案、總覽摘要要跟著變 ----
+    // 標題的每一段對應哪些原定行程；那些行程都不在了，這一段就換成新加的行程名稱
+    const DAY_SEG = {
+      1: [['抵達東京', ['d1-0', 'd1-a']], ['丸之內', ['d1-2']]],
+      2: [['明治神宮外苑', ['d2-1']], ['日暮里布店', ['d2-2']], ['表參道', ['d2-4']]],
+      3: [['新宿御苑', ['d3-1']], ['日暮里布店', ['d3-2']], ['六本木', ['d3-4']]],
+      4: [['日比谷銀杏', ['d4-1']], ['讀賣樂園', ['d4-3', 'd4-4', 'd4-5']]],
+      5: [['上野公園', ['d5-1', 'd5-2']], ['東京晴空塔城', ['d5-3']]],
+      6: [['南船橋 LaLaport TOKYO-BAY', ['d6-2']], ['惠比壽', ['d6-3']]],
+      7: [['小石川後樂園', ['d7-1']], ['布店補貨', ['d7-2']], ['東京巨蛋城', ['d7-4']]],
+      8: [['返程', ['d8-5']]]
+    };
+    const AM_ID = { 2: 'd2-1', 3: 'd3-1', 4: 'd4-1', 5: 'd5-1', 6: 'd6-2', 7: 'd7-1' };   // 橫幅左邊「朝」的照片是哪個行程
+    const PM_ID = { 1: 'd1-2', 2: 'd2-4', 3: 'd3-4', 4: 'd4-4', 5: 'd5-3', 6: 'd6-3', 7: 'd7-4' };
+    const NEXT_AM = { 1: 'd2-1', 2: 'd3-1', 3: 'd4-1', 4: 'd5-1', 5: 'd6-1', 6: 'd7-1' };   // 明日預告第一句講的是隔天哪個行程
+    const NOT_SIGHT = /休息|交通|航班|美食|咖啡/;   // 這些類型不算當天的主題
+    const intact = (d, id) => !!d.events.find(e => e.id === id && e.title === DEFAULT_TITLE[id]);
+    const isNew = e => !DEFAULT_TITLE[e.id] || e.title !== DEFAULT_TITLE[e.id];
+    const shortTitle = t => String(t).replace(/[（(].*?[）)]/g, '').replace(/\s+/g, ' ').trim().slice(0, 14);
+    function dayChanged(d) {
+      const ids = (DEFAULT_DAYS.find(x => x.day === d.day) || { events: [] }).events.map(e => e.id);
+      return ids.some(id => !intact(d, id)) || d.events.some(isNew);
+    }
+    function dayTitle(d) {
+      const seg = DAY_SEG[d.day], def = DEFAULT_DAYS.find(x => x.day === d.day);
+      // 只有標題裡列的原定行程被拿掉或改名才重排；單純多加行程不改標題
+      if (!seg || !def || d.title !== def.title || seg.every(([, ids]) => ids.some(id => intact(d, id)))) return d.title;
+      const out = [];
+      d.events.forEach(e => {
+        if (isNew(e)) { if (!NOT_SIGHT.test(e.type)) out.push(shortTitle(e.title)); return; }
+        const sg = seg.find(([, ids]) => ids.includes(e.id));
+        if (sg && !out.includes(sg[0])) out.push(sg[0]);
+      });
+      return [...new Set(out)].slice(0, 4).join('・') || d.title;
+    }
+    // 某個時段（上午／晚上）新加的主要行程
+    function slotEvent(d, from, to) {
+      return d.events.find(e => isNew(e) && !NOT_SIGHT.test(e.type) && e.time >= from && e.time < to);
+    }
+    const SLOT_SCENE = { '🍂 賞葉': ['ginkgo', '#'], '🍁 紅葉': ['maple', '#'], '✨ 看燈': ['marunouchi', '#'], '🛍️ 逛街': ['shop', '#'], '🧵 逛布': ['fabric', '#'] };
+    function dayBannerParts(d) {
+      let am = d.am, pm = d.pm, amPhoto = (DAY_PHOTOS[d.day] || {}).am, pmPhoto = (DAY_PHOTOS[d.day] || {}).pm;
+      const swap = (part, ev) => {
+        const sc = (SLOT_SCENE[ev.type] || [])[0];
+        return { scene: sc && SCENES[sc] ? sc : part.scene, seed: part.seed, label: shortTitle(ev.title) };
+      };
+      if (AM_ID[d.day] && !intact(d, AM_ID[d.day])) { const ev = slotEvent(d, '00:00', '12:00'); if (ev) { am = swap(am, ev); amPhoto = null; } }
+      if (pm && PM_ID[d.day] && !intact(d, PM_ID[d.day])) { const ev = slotEvent(d, '16:00', '24:00'); if (ev) { pm = swap(pm, ev); pmPhoto = null; } }
+      return { am, pm, amPhoto, pmPhoto };
+    }
+    function rainPlan(d) {
+      const ids = Object.values(DAY_SEG[d.day] || []).flatMap(([, x]) => x);
+      if (RAIN_PLAN[d.day] && ids.every(id => intact(d, id))) return RAIN_PLAN[d.day];
+      return '戶外的賞葉行程可縮短或延後，室內行程照常；帶傘並預留移動時間。';
+    }
+    function parseMins(t) {
+      const h = /(\d+)\s*小時/.exec(t || ''), m = /(\d+)\s*分/.exec(t || '');
+      return h || m ? (h ? +h[1] * 60 : 0) + (m ? +m[1] : 0) : null;
+    }
+    const hm = m => `${String(Math.floor(m / 60)).padStart(2, '0')}:${String(m % 60).padStart(2, '0')}`;
+    // 明日預告：第一句講的那個行程如果被換掉，改用新行程重算出門時間
+    function tomorrowPlan(d, nd) {
+      const t = TOMORROW[d.day];
+      if (!t || !NEXT_AM[d.day] || intact(nd, NEXT_AM[d.day])) return t;
+      const ev = nd.events.find(e => !NOT_SIGHT.test(e.type)) || nd.events[0];
+      if (!ev || toMin(ev.time) == null) return { leave: t.leave, items: t.items.slice(1) };
+      const loc = evLoc(ev)[0];
+      const info = loc && loc !== 'nippori' ? LEG_INFO[['nippori', loc].sort().join('|')] : null;
+      const mins = info ? parseMins(info[2]) : null;
+      const leave = hm(Math.max(0, Math.floor((toMin(ev.time) - (mins == null ? 30 : mins) - 10) / 5) * 5));
+      const first = loc === 'nippori' ? `明早 ${ev.time} ${shortTitle(ev.title)}，在日暮里附近`
+        : info ? `明早 ${ev.time} ${shortTitle(ev.title)}，約 ${leave} 出門（${info[0]} ${info[2]}）`
+          : `明早 ${ev.time} ${shortTitle(ev.title)}；出門時間請按明天「今日路線」的即時路線確認`;
+      return { leave: loc === 'nippori' ? t.leave : leave, items: [first, ...t.items.slice(1)] };
+    }
+    // 總覽每天的三行摘要：上午、下午、晚上；對應的原定行程被換掉就改成新行程
+    function daySummary(d) {
+      const sm = (DAY_SUMMARY[d.date] || ['', '', '']).slice();
+      if (!dayChanged(d)) return sm;
+      if (AM_ID[d.day] && !intact(d, AM_ID[d.day])) { const ev = slotEvent(d, '00:00', '12:00'); sm[0] = ev ? shortTitle(ev.title) : '自由安排'; }
+      if (PM_ID[d.day] && !intact(d, PM_ID[d.day])) { const ev = slotEvent(d, '16:00', '24:00'); sm[2] = ev ? shortTitle(ev.title) : '自由安排'; }
+      return sm;
     }
 
     function scenePanel(part, label, tone, photo) {
@@ -2245,17 +2428,21 @@
       const done = d.events.filter(e => e.done).length;
       const pct = d.events.length ? Math.round(done / d.events.length * 100) : 0;
       const alts = d.events.filter(e => e.alt);
+      const bn = dayBannerParts(d);
       document.getElementById('dayBanner').innerHTML = `
         <article class="bg-white rounded-3xl border border-tk-line shadow-sm overflow-hidden fade-in">
-          <div class="grid ${d.pm ? 'grid-cols-2' : 'grid-cols-1'} h-40 md:h-56 gap-px bg-tk-line">
-            ${scenePanel(d.am, d.pm ? '☀️ 朝' : '☀️', 'bg-white/85 text-tk-ink', (DAY_PHOTOS[d.day] || {}).am)}
-            ${d.pm ? scenePanel(d.pm, '🌙 夜', 'bg-black/50 text-white', (DAY_PHOTOS[d.day] || {}).pm) : ''}
+          <div class="grid ${bn.pm ? 'grid-cols-2' : 'grid-cols-1'} h-40 md:h-56 gap-px bg-tk-line">
+            ${scenePanel(bn.am, bn.pm ? '☀️ 朝' : '☀️', 'bg-white/85 text-tk-ink', bn.amPhoto)}
+            ${bn.pm ? scenePanel(bn.pm, '🌙 夜', 'bg-black/50 text-white', bn.pmPhoto) : ''}
           </div>
           <div class="p-4 md:p-5 space-y-3">
             <div class="flex flex-wrap items-end justify-between gap-2">
-              <div>
-                <p class="text-xs font-bold text-tk-maple">Day ${d.day}・${d.date}（${d.dow}）・${esc(d.area)}</p>
-                <h2 class="font-serif text-xl md:text-2xl font-bold text-tk-night mt-0.5">${esc(d.title)}</h2>
+              <div class="day-head">
+                <span class="eki-no" aria-hidden="true"><small>D</small><b>${d.day}</b></span>
+                <div>
+                  <h2 class="font-serif text-xl md:text-2xl font-bold text-tk-night">${esc(dayTitle(d))}</h2>
+                  <p class="text-sm text-tk-muted mt-1"><span class="num font-bold text-tk-ink">${d.date}</span>（${d.dow}）在${esc(d.area)}</p>
+                </div>
               </div>
               <div class="text-right">
                 <p class="text-[11px] text-tk-muted">已完成 ${done} / ${d.events.length}</p>
@@ -2270,7 +2457,7 @@
               <button onclick="toggleRain(${d.day})" aria-pressed="${!!rainDays[d.day]}" class="chip-filter px-3 py-1.5 rounded-full text-xs font-bold">${rainDays[d.day] ? '☔ 雨天模式：開（點一下關閉）' : '🌂 下雨了？切換雨天模式'}</button>
               <span class="text-[11px] text-tk-muted">🌅 日出約 ${(SUN[d.date] || [])[0] || '—'}・🌇 日落約 ${(SUN[d.date] || [])[1] || '—'}</span>
             </div>
-            ${rainDays[d.day] ? `<div class="p-3 rounded-xl bg-sky-50 border border-sky-200 text-xs text-sky-800 leading-relaxed pop">☔ <b>雨天方案</b>：${esc(RAIN_PLAN[d.day] || '照常出發，帶傘並預留移動時間。')}</div>` : ''}
+            ${rainDays[d.day] ? `<div class="p-3 rounded-xl bg-sky-50 border border-sky-200 text-xs text-sky-800 leading-relaxed pop">☔ <b>雨天方案</b>：${esc(rainPlan(d))}</div>` : ''}
             ${alts.length ? `<p class="text-[11px] text-tk-muted">🔀 今天有 ${alts.length} 個備案，見下方黃色提示。</p>` : ''}
           </div>
         </article>`;
@@ -2286,11 +2473,11 @@
       const conflicts = findConflicts(d.events);
       const rainy = !!rainDays[d.day];
       const tl = document.getElementById('timelineContainer');
-      tl.innerHTML = `<span class="timeline-line absolute left-[3.9rem] md:left-[4.9rem] top-2 bottom-2 w-0.5" aria-hidden="true"></span>` + d.events.map(ev => {
+      tl.innerHTML = `<span class="timeline-line absolute left-[3.95rem] md:left-[4.95rem] top-2 bottom-2" aria-hidden="true"></span>` + d.events.map(ev => {
         const t = TYPES[ev.type] || TYPES['🚃 交通'];
         const timeHtml = ev.timeLabel
-          ? `<span class="text-sm font-black text-tk-night leading-tight">${esc(ev.timeLabel)}</span>`
-          : `<span class="text-base font-black text-tk-night leading-tight">${esc(ev.time)}</span>${ev.end ? `<span class="block text-[11px] text-tk-muted">– ${esc(ev.end)}</span>` : ''}`;
+          ? `<span class="text-sm font-bold text-tk-night leading-tight">${esc(ev.timeLabel)}</span>`
+          : `<span class="text-base font-bold text-tk-night leading-tight">${esc(ev.time)}</span>${ev.end ? `<span class="block text-[11px] text-tk-muted">– ${esc(ev.end)}</span>` : ''}`;
         const route = ev.route ? `<div class="flex flex-wrap items-center gap-1 mt-2">${ev.route.map((p, i) => `${i ? '<span class="text-tk-muted text-xs">→</span>' : ''}<span class="text-[11px] px-2 py-0.5 rounded-md bg-tk-bg border border-tk-line">${esc(p)}</span>`).join('')}</div>` : '';
         const tags = ev.tags ? `<div class="flex flex-wrap gap-1.5 mt-2">${ev.tags.map(g => `<span class="text-[11px] px-2 py-0.5 rounded-full bg-pink-50 text-pink-800 border border-pink-200">🛒 ${esc(g)}</span>`).join('')}</div>` : '';
         const alt = ev.alt ? `<div class="mt-2.5 p-2.5 rounded-xl bg-amber-50 border border-amber-200 text-xs text-amber-900 flex items-start gap-2"><span>🔀</span><span class="flex-1">${esc(ev.alt)}</span>${ev.altMap ? `<a href="${mapUrl(ev.altMap)}" target="_blank" rel="noopener" class="shrink-0 font-bold underline underline-offset-2">備案導航</a>` : ''}</div>` : '';
@@ -2298,9 +2485,9 @@
         const del = `<button onclick="openEditEvent('${ev.id}')" class="px-2.5 py-1.5 rounded-lg text-[11px] font-bold text-tk-muted hover:text-tk-night">編輯</button><button onclick="deleteEvent('${ev.id}')" class="px-2.5 py-1.5 rounded-lg text-[11px] font-bold text-tk-muted hover:text-tk-maple">${ev.custom ? '刪除' : '移除'}</button>`;
         return `
           <li class="relative pl-[5rem] md:pl-[6rem]">
-            <div class="absolute left-0 top-4 w-[3.3rem] md:w-[4.3rem] text-right">${timeHtml}</div>
-            <span class="absolute left-[3.6rem] md:left-[4.6rem] top-5 w-3.5 h-3.5 rounded-full ring-4 ring-tk-bg" style="background:${t.dot}"></span>
-            <div class="relative bg-white rounded-2xl p-4 border ${ev.id === nextId ? 'border-tk-gold ring-2 ring-tk-gold/30 glow-next' : 'border-tk-line'} shadow-sm transition ${ev.done ? 'ev-dim' : (rainy && isOutdoor(ev) ? 'opacity-75' : '')}">
+            <div class="tl-time absolute left-0 top-4 w-[3.3rem] md:w-[4.3rem] text-right">${timeHtml}</div>
+            <span class="tl-stop absolute left-[3.6rem] md:left-[4.6rem] top-5 rounded-full" style="border-color:${t.dot}"></span>
+            <div class="relative bg-white rounded-2xl p-4 border ${ev.id === nextId ? 'ev-next' : 'border-tk-line'} shadow-sm transition ${ev.done ? 'ev-dim' : (rainy && isOutdoor(ev) ? 'opacity-75' : '')}">
               <div class="flex items-start gap-3">
                 ${ev.done ? '<span class="done-stamp" aria-hidden="true">済</span>' : ''}
                 <input type="checkbox" ${ev.done ? 'checked' : ''} onchange="toggleEventDone('${ev.id}')" aria-label="標記完成" class="tick ev-fade mt-1 w-4 h-4 cursor-pointer shrink-0" />
@@ -2348,7 +2535,7 @@
       const dark = themePref === 'dark' || (themePref === 'auto' && (host === 'dark' || (host !== 'light' && !!(darkMQ && darkMQ.matches))));
       document.documentElement.classList.toggle('dark', dark);
       const meta = document.querySelector('meta[name="theme-color"]');
-      if (meta) meta.setAttribute('content', dark ? '#11131B' : '#1B2440');
+      if (meta) meta.setAttribute('content', dark ? '#0E1422' : '#1D2F55');
       const btn = document.getElementById('themeBtn');
       if (btn) btn.textContent = themePref === 'auto' ? '🌗 自動' : themePref === 'dark' ? '🌙 夜間' : '☀️ 日間';
       if (document.getElementById('routeMap')) renderDayRoute();
@@ -2482,17 +2669,17 @@
       harajuku: [116, 184, '原宿'], shinjuku: [108, 140, '新宿'],
       narita: [376, 40, '成田機場'], oshiage: [328, 100, '押上・晴空塔'], minamifunabashi: [377, 210, '南船橋'], tachikawa: [24, 140, '立川'], yomiuriland: [30, 262, '讀賣樂園'],
       aoyama: [166, 176, '外苑'], omotesando: [146, 192, '表參道'], roppongi: [188, 212, '六本木'], gyoen: [140, 150, '新宿御苑'],
-      hibiya: [248, 186, '日比谷'], korakuen: [212, 116, '後樂園・巨蛋'], yanaka: [222, 40, '谷中']
+      hibiya: [248, 186, '日比谷'], korakuen: [212, 116, '水道橋・東京巨蛋'], yanaka: [222, 40, '谷中'], oji: [190, 24, '王子・飛鳥山']
     };
     const LOOP = ['ikebukuro', 'nippori', 'ueno', 'akihabara', 'tokyo', 'yurakucho', 'shimbashi', 'shinagawa', 'ebisu', 'shibuya', 'harajuku', 'shinjuku'];
     // 路線與交通卡依「當天實際的行程」自動產生：先判斷每個行程在哪一區，再串成移動順序
-    Object.assign(L_COL, { walk: '#8E8A84', oedo: '#B6007A', asakusa: '#E85298', unknown: '#9C9C94' });
+    Object.assign(L_COL, { walk: '#8E8A84', oedo: '#B6007A', asakusa: '#E85298', keihin: '#00B2E5', unknown: '#9C9C94' });
     Object.assign(ST, { ginza: [276, 194, '銀座・築地'], asakusa: [306, 82, '淺草'], kanda: [288, 144, '神田・日本橋'] });
     const HOTEL_Q = 'アパホテル TKP日暮里駅前';
     const ST_Q = {
       nippori: '日暮里駅', narita: '成田空港第2ビル駅', tokyo: '東京駅', aoyama: '青山一丁目駅', omotesando: '表参道駅', harajuku: '原宿駅', shinjuku: '新宿駅', gyoen: '新宿御苑 新宿門',
       roppongi: '六本木駅', hibiya: '日比谷公園', ueno: '上野駅', oshiage: '押上駅', minamifunabashi: '南船橋駅', ebisu: '恵比寿駅', korakuen: '水道橋駅', yomiuriland: '京王よみうりランド駅',
-      tachikawa: '立川駅', shibuya: '渋谷駅', ikebukuro: '池袋駅', shinagawa: '品川駅', akihabara: '秋葉原駅', ginza: '銀座駅', asakusa: '浅草駅', kanda: '神田駅'
+      tachikawa: '立川駅', shibuya: '渋谷駅', ikebukuro: '池袋駅', shinagawa: '品川駅', akihabara: '秋葉原駅', ginza: '銀座駅', asakusa: '浅草駅', kanda: '神田駅', oji: '王子駅'
     };
     // 原定行程各在哪一區（[所在, 結束時所在]）；名稱被改過或自己加的行程，改用關鍵字判斷
     const DEFAULT_LOC = {
@@ -2508,12 +2695,12 @@
     const DEFAULT_TITLE = {};
     DEFAULT_DAYS.forEach(d => d.events.forEach(e => { DEFAULT_TITLE[e.id] = e.title; }));
     const LOC_WORDS = [
-      [/成田|機場|空港/, 'narita'], [/讀賣|読売|よみうり/, 'yomiuriland'], [/LaLaport|ららぽーと|南船橋/i, 'minamifunabashi'],
+      [/成田|機場|空港/, 'narita'], [/飛鳥山|王子|あすかやま/, 'oji'], [/讀賣|読売|よみうり/, 'yomiuriland'], [/LaLaport|ららぽーと|南船橋/i, 'minamifunabashi'],
       [/晴空塔|スカイツリー|押上|Solamachi|ソラマチ/i, 'oshiage'], [/巨蛋|ドーム|後樂園|後楽園|水道橋|LaQua|ラクーア/i, 'korakuen'],
       [/惠比壽|恵比寿/, 'ebisu'], [/六本木|麻布|東京鐵塔|東京タワー/, 'roppongi'], [/表參道|表参道/, 'omotesando'], [/原宿|竹下/, 'harajuku'],
       [/外苑|青山/, 'aoyama'], [/新宿御苑/, 'gyoen'], [/新宿|歌舞伎町|思い出横丁/, 'shinjuku'], [/澀谷|渋谷/, 'shibuya'], [/池袋/, 'ikebukuro'], [/品川/, 'shinagawa'],
-      [/秋葉原/, 'akihabara'], [/日比谷|有樂町|有楽町/, 'hibiya'], [/銀座|築地/, 'ginza'], [/淺草|浅草|雷門/, 'asakusa'], [/神田|日本橋/, 'kanda'],
-      [/上野|アメ横|阿美橫/, 'ueno'], [/丸之內|丸の内|東京站|東京駅|皇居/, 'tokyo'], [/立川|昭和紀念|昭和記念/, 'tachikawa'],
+      [/秋葉原/, 'akihabara'], [/日比谷|有樂町|有楽町/, 'hibiya'], [/銀座|築地/, 'ginza'], [/淺草|浅草|雷門|合羽橋|かっぱ橋|田原町/, 'asakusa'], [/神田|日本橋/, 'kanda'],
+      [/上野|アメ横|阿美橫/, 'ueno'], [/丸之內|丸の内|東京站|東京駅|皇居|國際論壇|国際フォーラム|International Forum/i, 'tokyo'], [/立川|昭和紀念|昭和記念/, 'tachikawa'],
       [/日暮里|谷中|飯店|APA|アパホテル|TOMATO|トマト|纖維街|繊維街|布店|午睡|午休|退房|整理行李|早餐/, 'nippori']
     ];
     const AREA_LOC = { '日暮里・谷中': 'nippori', '上野': 'ueno', '青山・表參道': 'omotesando', '新宿': 'shinjuku', '六本木・麻布': 'roppongi', '東京站・丸之內': 'tokyo', '惠比壽': 'ebisu',
@@ -2561,7 +2748,12 @@
       'ikebukuro|nippori': ['JR 山手線', 'yamanote', '約 12 分', ''],
       'nippori|shibuya': ['JR 山手線', 'yamanote', '約 30 分', ''],
       'nippori|shinagawa': ['JR 山手線・京濱東北線', 'yamanote', '約 22 分', ''],
-      'ginza|nippori': ['JR 到上野轉東京Metro 銀座線', 'ginza', '約 20 分', '']
+      'ginza|nippori': ['JR 到上野轉東京Metro 銀座線', 'ginza', '約 20 分', ''],
+      'nippori|oji': ['JR 京濱東北線', 'keihin', '約 6 分', '飛鳥山公園就在王子站旁；也可搭都電荒川線'],
+      'oji|ueno': ['JR 京濱東北線', 'keihin', '約 10 分', ''],
+      'oji|tokyo': ['JR 京濱東北線', 'keihin', '約 20 分', ''],
+      'akihabara|oji': ['JR 京濱東北線', 'keihin', '約 15 分', ''],
+      'korakuen|oji': ['都營三田線（白山轉）或 JR 經日暮里', 'keihin', '約 25 分', '']
     };
     function buildRoute(d) {
       // 每個節點：{ key: 示意圖上的站, name: 顯示名稱, q: 給 Google 地圖查路線用的地點 }
@@ -2642,7 +2834,7 @@
         </g>`;
       b += line(['nippori', 'narita'], L_COL.skyliner, 3, .4) + line(['tokyo', 'minamifunabashi'], L_COL.keiyo, 3, .4) + line(['shinjuku', 'tachikawa'], L_COL.chuo, 3, .4)
         + line(['ueno', 'shimbashi', 'aoyama', 'omotesando', 'shibuya'], L_COL.ginza, 2.5, .4) + line(['ueno', 'akihabara', 'hibiya', 'roppongi', 'ebisu'], L_COL.hibiya, 2.5, .45)
-        + line(['akihabara', 'korakuen', 'shinjuku'], L_COL.sobu, 2.5, .5) + line(['nippori', 'oshiage'], L_COL.keisei, 2.5, .4) + line(['shinjuku', 'yomiuriland'], L_COL.keio, 2.5, .45);
+        + line(['akihabara', 'korakuen', 'shinjuku'], L_COL.sobu, 2.5, .5) + line(['nippori', 'oshiage'], L_COL.keisei, 2.5, .4) + line(['nippori', 'oji'], L_COL.keihin, 2.5, .45) + line(['shinjuku', 'yomiuriland'], L_COL.keio, 2.5, .45);
       b += line([...LOOP, LOOP[0]], L_COL.yamanote, 6, .85);
       for (const k of ['ikebukuro', 'ueno', 'tokyo', 'shinagawa', 'shibuya', 'shinjuku']) {
         const [x, y, n] = P(k);
@@ -2898,7 +3090,7 @@
       const el = document.getElementById('dayTomorrow');
       const d = itinerary.find(x => x.day === currentDay);
       const nd = itinerary.find(x => x.day === d.day + 1);
-      const t = TOMORROW[d.day];
+      const t = nd ? tomorrowPlan(d, nd) : null;
       if (!nd || !t) {
         el.innerHTML = '<div class="rounded-2xl bg-tk-night text-white p-4 fade-in"><p class="font-serif font-bold">🛬 這是最後一天</p><p class="text-xs text-white/80 mt-1">回到台灣後，在下方「旅行手帳」看這趟的回顧。</p></div>';
         return;
@@ -2906,7 +3098,7 @@
       el.innerHTML = `
         <div class="rounded-2xl bg-tk-night text-white p-4 space-y-2.5 fade-in">
           <div class="flex flex-wrap items-center justify-between gap-2">
-            <p class="font-serif font-bold">🌙 明日預告・${nd.date}（${nd.dow}）${esc(nd.title)}</p>
+            <p class="font-serif font-bold">🌙 明日預告・${nd.date}（${nd.dow}）${esc(dayTitle(nd))}</p>
             <span class="text-[11px] font-bold px-2 py-1 rounded-full bg-tk-gold text-tk-night">建議 ${t.leave} 出門</span>
           </div>
           <ul class="space-y-1.5 text-xs text-white/90 leading-relaxed">${t.items.map(i => `<li class="flex gap-2"><span>•</span><span>${esc(i)}</span></li>`).join('')}</ul>
@@ -3009,7 +3201,7 @@
         const note = journal[d.day];
         if (!ps.length && !note) return '';
         return `<section class="space-y-2">
-          <p class="text-xs font-bold text-tk-maple">Day ${d.day}・${d.date}（${d.dow}）${esc(d.title)}</p>
+          <p class="text-xs font-bold text-tk-maple">Day ${d.day}・${d.date}（${d.dow}）${esc(dayTitle(d))}</p>
           ${note ? `<p class="text-sm text-tk-ink leading-relaxed">${esc(note)}</p>` : ''}
           ${ps.length ? `<div class="grid grid-cols-3 gap-1.5">${ps.map(x => `<img src="${journalUrl(x.blob, recapUrls)}" alt="" class="aspect-square w-full object-cover rounded-lg">`).join('')}</div>` : ''}
         </section>`;
@@ -3194,7 +3386,7 @@
           <div class="shrink-0 border-r border-tk-line" style="width:${OV.col}px">
             <button onclick="openDayFromOverview(${d.day})" class="w-full px-2 py-1.5 text-left border-b border-tk-line ${isToday ? 'bg-tk-goldSoft' : 'bg-white'}" style="height:${OV.head}px">
               <p class="text-sm font-black text-tk-night leading-tight">${d.date}<span class="text-[11px] font-bold text-tk-muted">（${d.dow}）</span>${rainDays[d.day] ? ' ☔' : ''}</p>
-              <p class="text-[10px] text-tk-muted leading-snug overflow-hidden" style="max-height:2.6em">${esc(d.title)}</p>
+              <p class="text-[10px] text-tk-muted leading-snug overflow-hidden" style="max-height:2.6em">${esc(dayTitle(d))}</p>
             </button>
             <div class="relative ${isToday ? 'bg-tk-goldSoft/40' : ''}" style="height:${H + 12}px">
               <div class="absolute left-0 right-0 bottom-0 bg-tk-night/5" style="top:${f(sunset)}px"></div>
@@ -3207,7 +3399,7 @@
       const legend = Object.keys(TYPES).filter(k => used.has(k)).map(k =>
         `<span class="inline-flex items-center gap-1 text-[11px] text-tk-ink"><span class="w-2.5 h-2.5 rounded-sm" style="background:${TYPES[k].dot}"></span>${esc(k)}</span>`).join('');
       const table = itinerary.map(d => {
-        const sm = DAY_SUMMARY[d.date] || ['', '', ''];
+        const sm = daySummary(d);
         return `<tr class="border-t border-tk-line align-top cursor-pointer hover:bg-tk-sand" onclick="openDayFromOverview(${d.day})">
           <th class="py-2 pr-3 text-left font-black text-tk-night whitespace-nowrap">${d.date}<span class="font-bold text-tk-muted">（${d.dow}）</span></th>
           ${sm.map(c => `<td class="py-2 pr-3 text-tk-ink">${esc(c)}</td>`).join('')}
@@ -3279,7 +3471,7 @@
       if (left > 0) {
         const s = Math.floor(left / 1000);
         const parts = [[Math.floor(s / 86400), '天'], [Math.floor(s % 86400 / 3600), '時'], [Math.floor(s % 3600 / 60), '分'], [s % 60, '秒']];
-        el.innerHTML = '<span class="text-[11px] font-bold text-white/80 mr-0.5">起飛倒數</span>' + parts.map(([n, u], k) => `<span class="cd"><b>${k ? pad(n) : n}</b><i>${u}</i></span>`).join('');
+        el.innerHTML = '<span class="text-[11px] font-bold text-white/75 mr-1">起飛倒數</span>' + parts.map(([n, u], k) => `<span class="cd"><b>${k ? pad(n) : n}</b><i>${u}</i></span>`).join('');
       } else if (t < TRIP_END) {
         el.innerHTML = `<span class="px-3 py-1.5 rounded-full bg-tk-gold text-tk-night text-sm font-black">🎒 旅程第 ${Math.min(8, Math.floor((t - Date.UTC(2026, 11, 1, 15)) / 864e5) + 1)} 天</span>`;
       } else {
@@ -4567,7 +4759,7 @@
         return `**12/7 LaLaport TOKYO-BAY**\n日暮里搭 JR 到東京站 → 轉京葉線到南船橋 → 出站步行約 5 分鐘。\n東京站的京葉線月台離其他月台很遠，轉乘請預留 10–15 分鐘。\n傍晚 18:00 到惠比壽看 Baccarat 水晶吊燈；累了就改在回程的東京站看丸之內燈飾。`;
       }
       const d = itinerary.find(x => x.day === currentDay);
-      return `目前選的是 **${d.date}（${d.dow}）${d.title}**：\n${d.events.map(e => `• ${e.timeLabel || e.time}　${e.title}`).join('\n')}\n\n（離線模式只能從行程資料整理答案；在右上角「API 設定」填入 Gemini API Key，就能自由提問。）`;
+      return `目前選的是 **${d.date}（${d.dow}）${dayTitle(d)}**：\n${d.events.map(e => `• ${e.timeLabel || e.time}　${e.title}`).join('\n')}\n\n（離線模式只能從行程資料整理答案；在右上角「API 設定」填入 Gemini API Key，就能自由提問。）`;
     }
 
     // ---- Gemini：模型會改版、舊的會下架，所以不寫死型號，先問這把金鑰有哪些模型可用，再挑一個 ----
@@ -4684,7 +4876,7 @@
         return;
       }
       try {
-        const slim = itinerary.map(d => ({ date: d.date, dow: d.dow, title: d.title, events: d.events.map(({ time, end, timeLabel, type, title, note, alt, route, tags }) => ({ time, end, timeLabel, type, title, note, alt, route, tags })) }));
+        const slim = itinerary.map(d => ({ date: d.date, dow: d.dow, title: dayTitle(d), events: d.events.map(({ time, end, timeLabel, type, title, note, alt, route, tags }) => ({ time, end, timeLabel, type, title, note, alt, route, tags })) }));
         const ctx = `你是專屬的東京旅遊 AI 管家，協助旅客進行 2026/12/02–12/09 的東京自由行，全程住日暮里的 APA 飯店〈TKP日暮里駅前〉（荒川區東日暮里 5-52-9，日暮里站步行約 2 分，帶大行李走有電梯的北改札）。去程星宇 JX802 台灣時間 10:10 桃園第一航廈起飛、抵達成田第2航廈；回程 JX801 日本時間 13:45 從成田第2航廈 3F 出境、抵達桃園第一航廈；機場與日暮里之間搭京成 Skyliner（第2航廈對應「空港第2ビル」站）。旅客的重點是：早上賞銀杏與紅葉、午後逛日暮里布店（TOMATO 週日休息）、晚上看聖誕燈飾。完整行程 JSON：\n${JSON.stringify(slim)}\n旅客的美食與咖啡候選清單：\n${JSON.stringify(FOOD.map(({ cat, must, name, area, days, when, tip }) => ({ cat, must, name, area, days, when, tip })))}\n伴手禮候選（where：tokyo=東京站、narita=成田T2出境後、ueno=上野、nippori=日暮里、other=百貨藥妝）：\n${JSON.stringify(GIFTS.map(({ name, where, tip }) => ({ name, where, tip })))}\n旅客目前的伴手禮清單：${JSON.stringify(GIFTS.filter(g => giftCart[g.id]).map(g => g.name + '×' + giftCart[g.id]))}\n請用繁體中文回答，語氣親切，給出具體可執行的時間、路線與交通建議；不確定的營業時間請提醒以官網為準。`;
         const reply = await geminiAsk(`${ctx}\n\n旅客提問：${prompt}`);
         bubble.innerHTML = aiBubble(fmt(reply));
