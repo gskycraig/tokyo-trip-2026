@@ -1,5 +1,5 @@
 // 東京行程網頁的離線快取。VERSION 由 build_site.py 在建置時填入。
-const VERSION = '20261122-194553';
+const VERSION = '20261122-194814';
 const CACHE = 'tokyo-trip-' + VERSION;      // 頁面與 CDN 資源，每次改版換新
 const IMG_CACHE = 'tokyo-trip-img';          // 照片，跨版本保留，避免重複下載
 const PRECACHE = ['./', 'manifest.webmanifest', 'icon-192.png', 'icon-512.png', 'icon-180.png'];
@@ -22,8 +22,10 @@ self.addEventListener('fetch', e => {
   const url = new URL(req.url);
   if (url.origin === location.origin) {
     const isPage = req.mode === 'navigate' || url.pathname.endsWith('/') || url.pathname.endsWith('index.html');
-    if (isPage) {   // 頁面：有網路拿最新的，沒網路用上次存的
-      e.respondWith(fetch(req).then(res => { if (res.ok) putIn(CACHE, './', res); return res; })
+    if (isPage) {   // 頁面：有網路拿最新的（略過瀏覽器的 10 分鐘暫存，改版後馬上看得到），沒網路用上次存的
+      e.respondWith(fetch(req.url, { cache: 'no-cache', credentials: 'same-origin' })
+        .then(res => res.redirected ? fetch(req) : res)   // 網址少了結尾斜線會被轉址，交回瀏覽器原本的方式處理
+        .then(res => { if (res.ok) putIn(CACHE, './', res); return res; })
         .catch(() => caches.match('./').then(hit => hit || caches.match(req, { ignoreSearch: true }))));
       return;
     }
